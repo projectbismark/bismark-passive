@@ -14,28 +14,28 @@ CFLAGS += -DDOMAIN_WHITELIST_FILENAME="\"/tmp/domain-whitelist.txt\""
 endif
 LDFLAGS += -lpcap -lresolv -pthread -lz -lssl -lcrypto
 SRCS = \
-	anonymization.c \
-	dns_parser.c \
-	dns_table.c \
-	flow_table.c \
-	address_table.c \
-	main.c \
-	packet_series.c \
-	util.c \
-	whitelist.c
+	src/anonymization.c \
+	src/dns_parser.c \
+	src/dns_table.c \
+	src/flow_table.c \
+	src/address_table.c \
+	src/main.c \
+	src/packet_series.c \
+	src/util.c \
+	src/whitelist.c
 OBJS = $(SRCS:.c=.o)
 EXE = bismark-passive
 
 TEST_SRCS = \
-	anonymization.c \
-	dns_parser.c \
-	dns_table.c \
-	flow_table.c \
-	address_table.c \
-	packet_series.c \
-	tests.c \
-	util.c \
-	whitelist.c
+	src/anonymization.c \
+	src/dns_parser.c \
+	src/dns_table.c \
+	src/flow_table.c \
+	src/address_table.c \
+	src/packet_series.c \
+	src/tests.c \
+	src/util.c \
+	src/whitelist.c
 TEST_OBJS = $(TEST_SRCS:.c=.o)
 TEST_EXE = tests
 
