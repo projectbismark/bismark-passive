@@ -24,7 +24,7 @@ SRCS = \
 	src/util.c \
 	src/whitelist.c
 OBJS = $(SRCS:.c=.o)
-EXE = bismark-passive
+EXE = bismark-passive.bin
 
 TEST_SRCS = \
 	src/anonymization.c \
