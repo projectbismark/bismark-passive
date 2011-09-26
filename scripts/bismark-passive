@@ -1,0 +1,14 @@
+#!/bin/sh
+
+EXE="bismark-passive.bin"
+IFACE="br-lan"
+DELAY=3
+
+while [ 1 ]; do
+  echo "Starting Bismark Passive"
+  $EXE $IFACE
+
+  echo "Bismark-passive has exited."
+  echo "Sleeping ${DELAY} seconds before restarting..."
+  sleep $DELAY
+done
