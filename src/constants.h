@@ -32,7 +32,9 @@
 #define FLOW_TABLE_MIN_UPDATE_OFFSET INT16_MIN
 
 /* Generate differential updates this often. */
+#ifndef UPDATE_PERIOD_SECONDS
 #define UPDATE_PERIOD_SECONDS 30
+#endif
 #define PENDING_UPDATE_FILENAME "/tmp/bismark-passive/current-update.gz"
 #define UPDATE_FILENAME "/tmp/bismark-passive/updates/%s-%" PRIu64 "-%d.gz"
 
