@@ -59,21 +59,21 @@ following format:
     [microseconds offset from previous packet] [packet size bytes] [flow id]
     
     [baseline timestamp] [num elements in flow table] [total expired flows] [total dropped flows]
-    [flow id] [hashed source IP address] [hashed destination IP address] [transport protocol] [source port] [destination port]
-    [flow id] [hashed source IP address] [hashed destination IP address] [transport protocol] [source port] [destination port]
+    [flow id] [anonymized] [(hashed) source IP address] [(hashed) destination IP address] [transport protocol] [source port] [destination port]
+    [flow id] [anonymized] [(hashed) source IP address] [(hashed) destination IP address] [transport protocol] [source port] [destination port]
     ...
-    [flow id] [hashed source IP address] [hashed destination IP address] [transport protocol] [source port] [destination port]
+    [flow id] [anonymized] [(hashed) source IP address] [(hashed) destination IP address] [transport protocol] [source port] [destination port]
     
     [total dropped A records] [total dropped CNAME records]
-    [MAC id] [hashed domain name for A record] [hashed ip address for A record]
-    [MAC id] [hashed domain name for A record] [hashed ip address for A record]
+    [MAC id] [anonymized] [(hashed) domain name for A record] [(hashed) ip address for A record]
+    [MAC id] [anonymized] [(hashed) domain name for A record] [(hashed) ip address for A record]
     ...
-    [MAC id] [hashed domain name for A record] [hashed ip address for A record]
+    [MAC id] [anonymized] [(hashed) domain name for A record] [(hashed) ip address for A record]
     
-    [MAC id] [hashed domain name for CNAME record] [hashed cname for CNAME record]
-    [MAC id] [hashed domain name for CNAME record] [hashed cname for CNAME record]
+    [MAC id] [anonymized] [(hashed) domain name for CNAME record] [(hashed) cname for CNAME record]
+    [MAC id] [anonymized] [(hashed) domain name for CNAME record] [(hashed) cname for CNAME record]
     ...
-    [MAC id] [hashed domain name for CNAME record] [hashed cname for CNAME record]
+    [MAC id] [anonymized] [(hashed) domain name for CNAME record] [(hashed) cname for CNAME record]
     
     [address id of first address in list] [total size of address table]
     [MAC address with lower 24 bits hashed] [hashed IP address]
