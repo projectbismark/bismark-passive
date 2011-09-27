@@ -9,36 +9,28 @@ networks.
 Installation instructions
 -------------------------
 
-1. Follow instruction at `dp4:/data/users/bismark/openwrt/src/instructions.txt` to
+1. Follow instructions at `dp4:/data/users/bismark/openwrt/src/instructions.txt` to
 prepare a build tree.  When cloning the bismark-packages repository, be sure to
 add the `-b passive` option to clone the passive branch of the
 repository.
 2. From the OpenWRT build directory:
-    - `scripts/feeds install bismark-passive`
-    - `make package/bismark-passive/compile`
-3. Copy `bin/ar71xx/packages/bismark-passive_*.ipk` to an OpenWRT router.
-4. `opkg install bismark-passive_*.ipk`
+    - `scripts/feeds install bismark-passive-git`
+    - `make package/bismark-passive-git/compile`
+3. Copy `bin/ar71xx/packages/bismark-passive-git_*.ipk` to an OpenWRT router.
+4. `opkg install bismark-passive-git_*.ipk`
 
 Build options
 -------------
 
-You can pass options when `make`'ing the package:
-
-1. `DISABLE_ANONYMIZATION=1` disables anonymization
-2. `BISMARK_PASSIVE_TARGET=release` disables debugging support
-3. `BISMARK_PASSIVE_TARGET=debug` enables debugging messages and binary symbols
-   (default)
+Use `make menuconfig` to configure build parameters.
 
 Operation instructions
 ----------------------
 
-Usage: `bismark-passive <network interface> [mac address 0] [mac address 1] ...`
+Usage: `bismark-passive`
 
-Recommended: capture on `br-lan` with the MAC addresses of all interfaces on the
-machine.
-
-It dumps into `/tmp/bismark-passive-update-<sequence_number>.gz` every 30
-seconds, where sequence\_number is an integer incrementing from 0.
+It dumps into `/tmp/bismark-passive/updates/<machine id>-<session id>-<sequence_number>.gz`
+every 30 seconds, where sequence\_number is an integer incrementing from 0.
 
 File format for differential updates
 ------------------------------------
