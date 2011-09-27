@@ -6,5 +6,6 @@ STAGING_DIR="/tmp/bismark-passive/stage"
 if [ -d "$SUBMISSIONS_DIR" ]; then
   mkdir -p $STAGING_DIR
   mv $SUBMISSIONS_DIR/* $STAGING_DIR
-  scp -S "/tmp/bismark/ssh" -i $SSH_KEY $STAGING_DIR/* $USER@$SERVER:var/data/passive && rm $STAGING_DIR/*
+  echo "Command I have would run if uploads were enabled"
+  echo scp -S "/tmp/bismark/ssh" -i $SSH_KEY $STAGING_DIR/* $USER@$SERVER:var/data/passive && rm $STAGING_DIR/*
 fi
