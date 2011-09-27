@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. /etc/bismark/bismark.conf
+
 SUBMISSIONS_DIR="/tmp/bismark-passive/updates"
 STAGING_DIR="/tmp/bismark-passive/stage"
 
