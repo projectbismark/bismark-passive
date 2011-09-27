@@ -152,24 +152,23 @@ int flow_table_write_update(flow_table_t* const table, gzFile handle) {
     if (table->entries[idx].occupied == ENTRY_OCCUPIED_BUT_UNSENT) {
       uint64_t source_digest, destination_digest;
 #ifndef DISABLE_ANONYMIZATION
-      if (!table->entries[idx].ip_source_unanonymized) {
-#else
-      if (1) {
+      if (table->entries[idx].ip_source_unanonymized) {
 #endif
+        source_digest = table->entries[idx].ip_source;
+#ifndef DISABLE_ANONYMIZATION
+      } else {
         if (anonymize_ip(table->entries[idx].ip_source, &source_digest)) {
 #ifndef NDEBUG
           fprintf(stderr, "Error anonymizing update\n");
 #endif
           return -1;
         }
-      } else {
-        source_digest = table->entries[idx].ip_source;
       }
-#ifndef DISABLE_ANONYMIZATION
-      if (!table->entries[idx].ip_destination_unanonymized) {
-#else
-      if (1) {
+      if (table->entries[idx].ip_destination_unanonymized) {
 #endif
+        destination_digest = table->entries[idx].ip_destination;
+#ifndef DISABLE_ANONYMIZATION
+      } else {
         if (anonymize_ip(table->entries[idx].ip_destination,
                          &destination_digest)) {
 #ifndef NDEBUG
@@ -177,9 +176,8 @@ int flow_table_write_update(flow_table_t* const table, gzFile handle) {
 #endif
           return -1;
         }
-      } else {
-        destination_digest = table->entries[idx].ip_destination;
       }
+#endif
 
       if (!gzprintf(handle,
             "%d %d %" PRIx64 " %d %" PRIx64 " %" PRIu8 " %" PRIu16 " %" PRIu16 "\n",

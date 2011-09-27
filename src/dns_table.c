@@ -110,10 +110,20 @@ int dns_table_write_update(dns_table_t* const table, gzFile handle) {
   int idx;
   for (idx = 0; idx < table->a_length; ++idx) {
 #ifndef DISABLE_ANONYMIZATION
-    if (!table->a_entries[idx].unanonymized) {
-#else
-    if (1) {
+    if (table->a_entries[idx].unanonymized) {
 #endif
+      if (!gzprintf(handle,
+                    "%" PRIu8 " 0 %s %" PRIx32 "\n",
+                    table->a_entries[idx].mac_id,
+                    table->a_entries[idx].domain_name,
+                    table->a_entries[idx].ip_address)) {
+#ifndef NDEBUG
+        perror("Error writing update");
+#endif
+        return -1;
+      }
+#ifndef DISABLE_ANONYMIZATION
+    } else {
       unsigned char domain_digest[ANONYMIZATION_DIGEST_LENGTH];
       uint64_t address_digest;
       if (anonymize_domain(table->a_entries[idx].domain_name, domain_digest)
@@ -131,18 +141,8 @@ int dns_table_write_update(dns_table_t* const table, gzFile handle) {
 #endif
         return -1;
       }
-    } else {
-      if (!gzprintf(handle,
-                    "%" PRIu8 " 0 %s %" PRIx32 "\n",
-                    table->a_entries[idx].mac_id,
-                    table->a_entries[idx].domain_name,
-                    table->a_entries[idx].ip_address)) {
-#ifndef NDEBUG
-        perror("Error writing update");
-#endif
-        return -1;
-      }
     }
+#endif
   }
   if (!gzprintf(handle, "\n")) {
 #ifndef NDEBUG
@@ -153,10 +153,20 @@ int dns_table_write_update(dns_table_t* const table, gzFile handle) {
 
   for (idx = 0; idx < table->cname_length; ++idx) {
 #ifndef DISABLE_ANONYMIZATION
-    if (!table->cname_entries[idx].unanonymized) {
-#else
-    if (1) {
+    if (table->cname_entries[idx].unanonymized) {
 #endif
+      if (!gzprintf(handle,
+                    "%" PRIu8 " 0 %s %s\n",
+                    table->cname_entries[idx].mac_id,
+                    table->cname_entries[idx].domain_name,
+                    table->cname_entries[idx].cname)) {
+#ifndef NDEBUG
+        perror("Error writing update");
+#endif
+        return -1;
+      }
+#ifndef DISABLE_ANONYMIZATION
+    } else {
       unsigned char domain_digest[ANONYMIZATION_DIGEST_LENGTH];
       unsigned char cname_digest[ANONYMIZATION_DIGEST_LENGTH];
       if (anonymize_domain(table->cname_entries[idx].domain_name, domain_digest)
@@ -180,18 +190,8 @@ int dns_table_write_update(dns_table_t* const table, gzFile handle) {
 #endif
         return -1;
       }
-    } else {
-      if (!gzprintf(handle,
-                    "%" PRIu8 " 0 %s %s\n",
-                    table->cname_entries[idx].mac_id,
-                    table->cname_entries[idx].domain_name,
-                    table->cname_entries[idx].cname)) {
-#ifndef NDEBUG
-        perror("Error writing update");
-#endif
-        return -1;
-      }
     }
+#endif
   }
   if (!gzprintf(handle, "\n")) {
 #ifndef NDEBUG
