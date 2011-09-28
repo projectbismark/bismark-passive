@@ -1,6 +1,8 @@
 #ifndef _BISMARK_PASSIVE_WHITELIST_H_
 #define _BISMARK_PASSIVE_WHITELIST_H_
 
+#include <zlib.h>
+
 typedef struct {
   char** domains;
   int size;
@@ -22,5 +24,10 @@ void domain_whitelist_destroy(const domain_whitelist_t* whitelist);
  * barfoo.com or oo.com */
 int domain_whitelist_lookup(const domain_whitelist_t* whitelist,
                             const char* const domain);
+
+/* Write the contents of the whitelist to an update. Should only
+ * be done once per session, since the whitelist is static. */
+int domain_whitelist_write_update(const domain_whitelist_t* whitelist,
+                                  gzFile handle);
 
 #endif

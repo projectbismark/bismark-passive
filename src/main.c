@@ -215,6 +215,18 @@ static void write_update(const struct pcap_stat* statistics) {
 #endif
     exit(1);
   }
+  if (sequence_number == 0) {
+    if (domain_whitelist_write_update(&domain_whitelist, handle)) {
+      exit(1);
+    }
+  } else {
+    if (!gzprintf(handle, "\n")) {
+#ifndef NDEBUG
+      perror("Error writing update");
+#endif
+      exit(1);
+    }
+  }
 #ifndef DISABLE_ANONYMIZATION
   if (anonymization_write_update(handle)) {
     exit(1);

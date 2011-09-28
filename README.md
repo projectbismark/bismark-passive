@@ -42,6 +42,11 @@ following format:
     [bismark ID] [timestamp at process creation] [sequence number]
     [(optional) total packets received by pcap] [(optional) total packets dropped by pcap] [(optional) total packets dropped by interface]
     
+    [whitelisted domain (only when sequence number is 0)]
+    [whitelisted domain (only when sequence number is 0)]
+    ...
+    [whitelisted domain (only when sequence number is 0)]
+
     [hash of anonymization key, or "UNANONYMIZED" if not anonymized]
     
     [timestamp of first packet] [packets dropped]
