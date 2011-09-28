@@ -5,7 +5,7 @@
 SUBMISSIONS_DIR="/tmp/bismark-passive/updates"
 STAGING_DIR="/tmp/bismark-passive/stage"
 
-if [ -d "$SUBMISSIONS_DIR" ]; then
+if [ -d "$SUBMISSIONS_DIR" -a "$(ls -A $SUBMISSIONS_DIR)" ]; then
   mkdir -p $STAGING_DIR
   mv $SUBMISSIONS_DIR/* $STAGING_DIR
   sleep 1
