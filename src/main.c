@@ -163,7 +163,7 @@ static void process_packet(
   }
 
   if (dns_bytes_len > 0) {
-    process_dns_packet(dns_bytes, dns_bytes_len, &dns_table, mac_id, packet_id);
+    process_dns_packet(dns_bytes, dns_bytes_len, &dns_table, packet_id, mac_id);
   }
 
   if (pthread_mutex_unlock(&update_lock)) {
