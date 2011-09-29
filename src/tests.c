@@ -377,18 +377,22 @@ START_TEST(test_dns_adds_a_entries) {
   a_entry.mac_id = 1;
   a_entry.domain_name = "foo.com";
   a_entry.ip_address = 1234;
+  a_entry.ttl = 12345;
   fail_if(dns_table_add_a(&dns_table, &a_entry));
   a_entry.mac_id = 2;
   a_entry.domain_name = "bar.com";
   a_entry.ip_address = 4321;
+  a_entry.ttl = 54321;
   fail_if(dns_table_add_a(&dns_table, &a_entry));
 
   fail_unless(dns_table.a_entries[0].mac_id == 1);
   fail_if(strcmp(dns_table.a_entries[0].domain_name, "foo.com"));
   fail_unless(dns_table.a_entries[0].ip_address == 1234);
+  fail_unless(dns_table.a_entries[0].ttl == 12345);
   fail_unless(dns_table.a_entries[1].mac_id == 2);
   fail_if(strcmp(dns_table.a_entries[1].domain_name, "bar.com"));
   fail_unless(dns_table.a_entries[1].ip_address == 4321);
+  fail_unless(dns_table.a_entries[1].ttl == 54321);
 }
 END_TEST
 
@@ -397,10 +401,12 @@ START_TEST(test_dns_adds_cname_entries) {
   cname_entry.mac_id = 1;
   cname_entry.domain_name = "foo.com";
   cname_entry.cname = "gorp.org";
+  cname_entry.ttl = 123;
   fail_if(dns_table_add_cname(&dns_table, &cname_entry));
   cname_entry.mac_id = 2;
   cname_entry.domain_name = "bar.com";
   cname_entry.cname = "baz.net";
+  cname_entry.ttl = 321;
   fail_if(dns_table_add_cname(&dns_table, &cname_entry));
 
   fail_unless(dns_table.cname_entries[0].mac_id == 1);
@@ -408,9 +414,11 @@ START_TEST(test_dns_adds_cname_entries) {
         dns_table.cname_entries[0].domain_name, "foo.com"));
   fail_if(strcmp(
         dns_table.cname_entries[0].cname, "gorp.org"));
+  fail_unless(dns_table.cname_entries[0].ttl == 123);
   fail_unless(dns_table.cname_entries[1].mac_id == 2);
   fail_if(strcmp(dns_table.cname_entries[1].domain_name, "bar.com"));
   fail_if(strcmp(dns_table.cname_entries[1].cname, "baz.net"));
+  fail_unless(dns_table.cname_entries[1].ttl == 321);
 }
 END_TEST
 

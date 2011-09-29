@@ -15,7 +15,7 @@ typedef struct {
   char name[MAXDNAME];
   uint16_t type;
   uint16_t class;
-  uint32_t ttl;
+  int32_t ttl;
   uint16_t rdlength;
   const uint8_t* rdata;
 } resource_record_t;
@@ -77,15 +77,17 @@ static void add_a_record(dns_table_t* dns_table,
   entry.mac_id = mac_id;
   entry.domain_name = strdup(record->name);
   entry.ip_address = ntohl(*(uint32_t*)record->rdata);
+  entry.ttl = record->ttl;
   dns_table_add_a(dns_table, &entry);
 #ifndef NDEBUG
   char ip_buffer[16];
   inet_ntop(AF_INET, &entry.ip_address, ip_buffer, sizeof(ip_buffer));
   fprintf(stderr,
-          "Added DNS A entry %d: %s %s\n",
+          "Added DNS A entry %d: %s %s %d\n",
           dns_table->a_length,
           entry.domain_name,
-          ip_buffer);
+          ip_buffer,
+          entry.ttl);
 #endif
 }
 
@@ -97,6 +99,7 @@ static void add_cname_record(dns_table_t* const dns_table,
   dns_cname_entry_t entry;
   entry.mac_id = mac_id;
   entry.domain_name = strdup(record->name);
+  entry.ttl = record->ttl;
   char cname[MAXDNAME];
   if (dn_expand(bytes, bytes + len, record->rdata, cname, sizeof(cname)) < 0) {
 #ifndef NDEBUG
@@ -108,10 +111,11 @@ static void add_cname_record(dns_table_t* const dns_table,
   dns_table_add_cname(dns_table, &entry);
 #ifndef NDEBUG
   fprintf(stderr,
-          "Added DNS CNAME entry %d: %s %s\n",
+          "Added DNS CNAME entry %d: %s %s %d\n",
           dns_table->cname_length,
           entry.domain_name,
-          entry.cname);
+          entry.cname,
+          entry.ttl);
 #endif
 }
 

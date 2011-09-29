@@ -15,6 +15,7 @@ typedef struct {
   uint8_t unanonymized : 1;
   char* domain_name;  /* A regular C string, not a DNS compressed string */
   uint32_t ip_address;  /* IPv4 address in network byte order */
+  int32_t ttl;
 } dns_a_entry_t;
 
 typedef struct {
@@ -22,6 +23,7 @@ typedef struct {
   uint8_t unanonymized : 1;
   char* domain_name;
   char* cname;  /* A regular C string, not a DNS compressed string */
+  int32_t ttl;
 } dns_cname_entry_t;
 
 typedef struct {
