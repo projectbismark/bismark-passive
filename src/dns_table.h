@@ -11,6 +11,7 @@
 
 /* A single A record from a DNS response. */
 typedef struct {
+  uint16_t packet_id;
   uint8_t mac_id;  /* See mac_table.h */
   uint8_t unanonymized : 1;
   char* domain_name;  /* A regular C string, not a DNS compressed string */
@@ -19,6 +20,7 @@ typedef struct {
 } dns_a_entry_t;
 
 typedef struct {
+  uint16_t packet_id;
   uint8_t mac_id;
   uint8_t unanonymized : 1;
   char* domain_name;

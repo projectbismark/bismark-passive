@@ -12,7 +12,7 @@ int packet_series_add_packet(
     packet_series_t* const series,
     const struct timeval* const timestamp,
     uint32_t size,
-    uint16_t flow) {
+    int flow) {
   if (series->length >= PACKET_DATA_BUFFER_ENTRIES) {
     if (series->discarded_by_overflow + 1 > series->discarded_by_overflow) {
       ++series->discarded_by_overflow;
@@ -34,7 +34,7 @@ int packet_series_add_packet(
   series->last_time_microseconds = current_timestamp_microseconds;
   ++series->length;
 
-  return 0;
+  return series->length - 1;
 }
 
 int packet_series_write_update(const packet_series_t* const series,

@@ -71,9 +71,11 @@ static const uint8_t* parse_resource_record(const uint8_t* const bytes,
 }
 
 static void add_a_record(dns_table_t* dns_table,
+                         uint16_t packet_id,
                          uint8_t mac_id,
                          const resource_record_t* record) {
   dns_a_entry_t entry;
+  entry.packet_id = packet_id;
   entry.mac_id = mac_id;
   entry.domain_name = strdup(record->name);
   entry.ip_address = ntohl(*(uint32_t*)record->rdata);
@@ -92,11 +94,13 @@ static void add_a_record(dns_table_t* dns_table,
 }
 
 static void add_cname_record(dns_table_t* const dns_table,
+                             uint16_t packet_id,
                              uint8_t mac_id,
                              const resource_record_t* const record,
                              const uint8_t* const bytes,
                              int len) {
   dns_cname_entry_t entry;
+  entry.packet_id = packet_id;
   entry.mac_id = mac_id;
   entry.domain_name = strdup(record->name);
   entry.ttl = record->ttl;
@@ -122,6 +126,7 @@ static void add_cname_record(dns_table_t* const dns_table,
 int process_dns_packet(const uint8_t* const bytes,
                        int len,
                        dns_table_t* const dns_table,
+                       uint16_t packet_id,
                        uint8_t mac_id)
 {
   if (len < sizeof(HEADER)) {
@@ -177,9 +182,9 @@ int process_dns_packet(const uint8_t* const bytes,
     }
 
     if (record.type == T_A) {
-      add_a_record(dns_table, mac_id, &record);
+      add_a_record(dns_table, packet_id, mac_id, &record);
     } else if (record.type == T_CNAME) {
-      add_cname_record(dns_table, mac_id, &record, bytes, len);
+      add_cname_record(dns_table, packet_id, mac_id, &record, bytes, len);
     }
   }
 
@@ -208,9 +213,9 @@ int process_dns_packet(const uint8_t* const bytes,
     }
 
     if (record.type == T_A) {
-      add_a_record(dns_table, mac_id, &record);
+      add_a_record(dns_table, packet_id, mac_id, &record);
     } else if (record.type == T_CNAME) {
-      add_cname_record(dns_table, mac_id, &record, bytes, len);
+      add_cname_record(dns_table, packet_id, mac_id, &record, bytes, len);
     }
   }
   return 0;

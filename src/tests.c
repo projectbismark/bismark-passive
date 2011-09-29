@@ -71,7 +71,7 @@ START_TEST(test_series_add) {
 
   first_tv.tv_sec = kMySec;
   first_tv.tv_usec = kMyUSec;
-  fail_if(packet_series_add_packet(&series, &first_tv, kMySize, kMyFlowId));
+  fail_if(packet_series_add_packet(&series, &first_tv, kMySize, kMyFlowId) < 0);
   fail_unless(series.length == 1);
   fail_unless(series.start_time_microseconds == kMySec * NUM_MICROS_PER_SECOND + kMyUSec);
   fail_unless(series.last_time_microseconds == series.start_time_microseconds);
@@ -82,7 +82,7 @@ START_TEST(test_series_add) {
 
   second_tv.tv_sec = kMySec + 60;
   second_tv.tv_usec = kMyUSec + 1000;
-  fail_if(packet_series_add_packet(&series, &second_tv, kMySize * 2, kMyFlowId));
+  fail_if(packet_series_add_packet(&series, &second_tv, kMySize * 2, kMyFlowId) < 0);
   fail_unless(series.length == 2);
   fail_unless(series.start_time_microseconds == TIMEVAL_TO_MICROS(&first_tv));
   fail_unless(series.last_time_microseconds == TIMEVAL_TO_MICROS(&second_tv));
@@ -102,7 +102,7 @@ START_TEST(test_series_overflow) {
   tv.tv_usec = kMyUSec;
 
   for (idx = 0; idx < PACKET_DATA_BUFFER_ENTRIES; ++idx) {
-    fail_if(packet_series_add_packet(&series, &tv, kMySize, kMyFlowId));
+    fail_if(packet_series_add_packet(&series, &tv, kMySize, kMyFlowId) < 0);
     fail_unless(series.length == idx + 1);
     fail_unless(series.start_time_microseconds
         == kMySec * NUM_MICROS_PER_SECOND + kMyUSec);
@@ -110,7 +110,7 @@ START_TEST(test_series_overflow) {
   }
 
   for (idx = 0; idx < 10; ++idx) {
-    fail_unless(packet_series_add_packet(&series, &tv, kMySize, kMyFlowId));
+    fail_unless(packet_series_add_packet(&series, &tv, kMySize, kMyFlowId) < 0);
     fail_unless(series.length == PACKET_DATA_BUFFER_ENTRIES);
     fail_unless(series.start_time_microseconds
         == kMySec * NUM_MICROS_PER_SECOND + kMyUSec);
@@ -123,10 +123,10 @@ START_TEST(test_series_write_update) {
   struct timeval tv;
   tv.tv_sec = 123456789;
   tv.tv_usec = 4321;
-  fail_if(packet_series_add_packet(&series, &tv, 25, 1));
+  fail_if(packet_series_add_packet(&series, &tv, 25, 1) < 0);
   tv.tv_sec = 123456790;
   tv.tv_usec = 4321;
-  fail_if(packet_series_add_packet(&series, &tv, 1024, 2));
+  fail_if(packet_series_add_packet(&series, &tv, 1024, 2) < 0);
 
   gzFile handle = open_tempfile();
   fail_if(packet_series_write_update(&series, handle));
@@ -374,21 +374,25 @@ void dns_setup() {
 
 START_TEST(test_dns_adds_a_entries) {
   dns_a_entry_t a_entry;
+  a_entry.packet_id = 2;
   a_entry.mac_id = 1;
   a_entry.domain_name = "foo.com";
   a_entry.ip_address = 1234;
   a_entry.ttl = 12345;
   fail_if(dns_table_add_a(&dns_table, &a_entry));
+  a_entry.packet_id = 4;
   a_entry.mac_id = 2;
   a_entry.domain_name = "bar.com";
   a_entry.ip_address = 4321;
   a_entry.ttl = 54321;
   fail_if(dns_table_add_a(&dns_table, &a_entry));
 
+  fail_unless(dns_table.a_entries[0].packet_id == 2);
   fail_unless(dns_table.a_entries[0].mac_id == 1);
   fail_if(strcmp(dns_table.a_entries[0].domain_name, "foo.com"));
   fail_unless(dns_table.a_entries[0].ip_address == 1234);
   fail_unless(dns_table.a_entries[0].ttl == 12345);
+  fail_unless(dns_table.a_entries[1].packet_id == 4);
   fail_unless(dns_table.a_entries[1].mac_id == 2);
   fail_if(strcmp(dns_table.a_entries[1].domain_name, "bar.com"));
   fail_unless(dns_table.a_entries[1].ip_address == 4321);
@@ -398,23 +402,27 @@ END_TEST
 
 START_TEST(test_dns_adds_cname_entries) {
   dns_cname_entry_t cname_entry;
+  cname_entry.packet_id = 8;
   cname_entry.mac_id = 1;
   cname_entry.domain_name = "foo.com";
   cname_entry.cname = "gorp.org";
   cname_entry.ttl = 123;
   fail_if(dns_table_add_cname(&dns_table, &cname_entry));
+  cname_entry.packet_id = 10;
   cname_entry.mac_id = 2;
   cname_entry.domain_name = "bar.com";
   cname_entry.cname = "baz.net";
   cname_entry.ttl = 321;
   fail_if(dns_table_add_cname(&dns_table, &cname_entry));
 
+  fail_unless(dns_table.cname_entries[0].packet_id == 8);
   fail_unless(dns_table.cname_entries[0].mac_id == 1);
   fail_if(strcmp(
         dns_table.cname_entries[0].domain_name, "foo.com"));
   fail_if(strcmp(
         dns_table.cname_entries[0].cname, "gorp.org"));
   fail_unless(dns_table.cname_entries[0].ttl == 123);
+  fail_unless(dns_table.cname_entries[1].packet_id == 10);
   fail_unless(dns_table.cname_entries[1].mac_id == 2);
   fail_if(strcmp(dns_table.cname_entries[1].domain_name, "bar.com"));
   fail_if(strcmp(dns_table.cname_entries[1].cname, "baz.net"));
@@ -553,7 +561,7 @@ START_TEST(test_dns_parser_can_parse_valid_responses) {
     uint8_t *contents;
     int len;
     fail_if(read_trace(traces[idx], &contents, &len));
-    fail_if(process_dns_packet(contents, len, &dns_table, 0));
+    fail_if(process_dns_packet(contents, len, &dns_table, 0, 1));
     free(contents);
   }
 }
@@ -575,7 +583,7 @@ START_TEST(test_dns_parser_fails_on_invalid_responses) {
     uint8_t *contents;
     int len;
     fail_if(read_trace(traces[idx], &contents, &len));
-    fail_unless(process_dns_packet(contents, len, &dns_table, 0));
+    fail_unless(process_dns_packet(contents, len, &dns_table, 0, 1));
     free(contents);
   }
 }

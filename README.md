@@ -62,15 +62,15 @@ following format:
     [flow id] [anonymized?] [(hashed) source IP address] [(hashed) destination IP address] [transport protocol] [source port] [destination port]
     
     [total dropped A records] [total dropped CNAME records]
-    [MAC id] [anonymized?] [(hashed) domain name for A record] [(hashed) ip address for A record]
-    [MAC id] [anonymized?] [(hashed) domain name for A record] [(hashed) ip address for A record]
+    [MAC id] [packet id] [anonymized?] [(hashed) domain name for A record] [(hashed) ip address for A record] [ttl]
+    [MAC id] [packet id] [anonymized?] [(hashed) domain name for A record] [(hashed) ip address for A record] [ttl]
     ...
-    [MAC id] [anonymized?] [(hashed) domain name for A record] [(hashed) ip address for A record]
+    [MAC id] [packet id] [anonymized?] [(hashed) domain name for A record] [(hashed) ip address for A record] [ttl]
     
-    [MAC id] [anonymized?] [(hashed) domain name for CNAME record] [(hashed) cname for CNAME record]
-    [MAC id] [anonymized?] [(hashed) domain name for CNAME record] [(hashed) cname for CNAME record]
+    [MAC id] [packet id] [anonymized?] [(hashed) domain name for CNAME record] [(hashed) cname for CNAME record] [ttl]
+    [MAC id] [packet id] [anonymized?] [(hashed) domain name for CNAME record] [(hashed) cname for CNAME record] [ttl]
     ...
-    [MAC id] [anonymized?] [(hashed) domain name for CNAME record] [(hashed) cname for CNAME record]
+    [MAC id] [packet id] [anonymized?] [(hashed) domain name for CNAME record] [(hashed) cname for CNAME record] [ttl]
     
     [address id of first address in list] [total size of address table]
     [MAC address with lower 24 bits hashed] [hashed IP address]

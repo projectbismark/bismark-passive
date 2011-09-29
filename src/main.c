@@ -61,7 +61,10 @@ static int sequence_number = 0;
 static void get_flow_entry_for_packet(
     const u_char* const bytes,
     int len,
-    flow_table_entry_t* const entry) {
+    flow_table_entry_t* const entry,
+    int* const mac_id,
+    u_char** const dns_bytes,
+    int* const dns_bytes_len) {
   const struct ether_header* const eth_header = (struct ether_header*)bytes;
   if (ntohs(eth_header->ether_type) == ETHERTYPE_IP) {
     const struct iphdr* ip_header = (struct iphdr*)(bytes + ETHER_HDR_LEN);
@@ -84,11 +87,10 @@ static void get_flow_entry_for_packet(
       entry->port_destination = ntohs(udp_header->dest);
 
       if (entry->port_source == NS_DEFAULTPORT) {
-        u_char* dns_bytes = (u_char*)udp_header + sizeof(struct udphdr);
-        int dns_len = len - (dns_bytes - bytes);
-        int mac_id = address_table_lookup(
+        *dns_bytes = (u_char*)udp_header + sizeof(struct udphdr);
+        *dns_bytes_len = len - (*dns_bytes - bytes);
+        *mac_id = address_table_lookup(
             &address_table, entry->ip_destination, eth_header->ether_dhost);
-        process_dns_packet(dns_bytes, dns_len, &dns_table, mac_id);
       }
     } else {
 #ifndef NDEBUG
@@ -139,7 +141,11 @@ static void process_packet(
 
   flow_table_entry_t flow_entry;
   flow_table_entry_init(&flow_entry);
-  get_flow_entry_for_packet(bytes, header->caplen, &flow_entry);
+  int mac_id = -1;
+  u_char* dns_bytes;
+  int dns_bytes_len = -1;
+  get_flow_entry_for_packet(
+      bytes, header->caplen, &flow_entry, &mac_id, &dns_bytes, &dns_bytes_len);
   int table_idx = flow_table_process_flow(
       &flow_table, &flow_entry, header->ts.tv_sec);
 #ifndef NDEBUG
@@ -148,11 +154,16 @@ static void process_packet(
   }
 #endif
 
-  if (packet_series_add_packet(
-        &packet_data, &header->ts, header->len, table_idx)) {
+  int packet_id = packet_series_add_packet(
+        &packet_data, &header->ts, header->len, table_idx);
+  if (packet_id < 0) {
 #ifndef NDEBUG
     fprintf(stderr, "Error adding to packet series\n");
 #endif
+  }
+
+  if (dns_bytes_len > 0) {
+    process_dns_packet(dns_bytes, dns_bytes_len, &dns_table, mac_id, packet_id);
   }
 
   if (pthread_mutex_unlock(&update_lock)) {

@@ -16,6 +16,7 @@
  * source and destination IP addresses are written to FLOW_THRESHOLDING_LOG. */
 /*#define DISABLE_FLOW_THRESHOLDING*/
 
+/* Max is 65536, unless you modify dns_table.h */
 #define PACKET_DATA_BUFFER_ENTRIES 65536
 #define FLOW_TABLE_ENTRIES 65535
 #define DNS_TABLE_A_ENTRIES 1024

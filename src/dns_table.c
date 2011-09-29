@@ -113,7 +113,8 @@ int dns_table_write_update(dns_table_t* const table, gzFile handle) {
     if (table->a_entries[idx].unanonymized) {
 #endif
       if (!gzprintf(handle,
-                    "%" PRIu8 " 0 %s %" PRIx32 " %" PRId32 "\n",
+                    "%" PRIu16 " %" PRIu8 " 0 %s %" PRIx32 " %" PRId32 "\n",
+                    table->a_entries[idx].packet_id,
                     table->a_entries[idx].mac_id,
                     table->a_entries[idx].domain_name,
                     table->a_entries[idx].ip_address,
@@ -133,7 +134,8 @@ int dns_table_write_update(dns_table_t* const table, gzFile handle) {
         return -1;
       }
       if (!gzprintf(handle,
-            "%" PRIu8 " 1 %s %" PRIx64 " %" PRId32 "\n",
+            "%" PRIu16 " %" PRIu8 " 1 %s %" PRIx64 " %" PRId32 "\n",
+            table->a_entries[idx].packet_id,
             table->a_entries[idx].mac_id,
             buffer_to_hex(domain_digest, ANONYMIZATION_DIGEST_LENGTH),
             address_digest,
@@ -158,7 +160,8 @@ int dns_table_write_update(dns_table_t* const table, gzFile handle) {
     if (table->cname_entries[idx].unanonymized) {
 #endif
       if (!gzprintf(handle,
-                    "%" PRIu8 " 0 %s %s %" PRId32 "\n",
+                    "%" PRIu16 " %" PRIu8 " 0 %s %s %" PRId32 "\n",
+                    table->a_entries[idx].packet_id,
                     table->cname_entries[idx].mac_id,
                     table->cname_entries[idx].domain_name,
                     table->cname_entries[idx].cname,
@@ -184,7 +187,8 @@ int dns_table_write_update(dns_table_t* const table, gzFile handle) {
       strcpy(hex_cname_digest,
           buffer_to_hex(cname_digest, ANONYMIZATION_DIGEST_LENGTH));
       if (!gzprintf(handle,
-                    "%" PRIu8 " 1 %s %s %" PRId32 "\n",
+                    "%" PRIu16 " %" PRIu8 " 1 %s %s %" PRId32 "\n",
+                    table->a_entries[idx].packet_id,
                     table->cname_entries[idx].mac_id,
                     hex_domain_digest,
                     hex_cname_digest,

@@ -11,6 +11,7 @@
 int process_dns_packet(const uint8_t* const bytes,
                        int len,
                        dns_table_t* const dns_table,
+                       uint16_t packet_id,
                        uint8_t mac_id);
 
 #endif

@@ -49,7 +49,7 @@ int packet_series_add_packet(
     packet_series_t* const packet_series,
     const struct timeval* const timestamp,
     uint32_t size,
-    uint16_t flow);
+    int flow);
 
 /* Serialize all time series entries to an open gzFile handle. */
 int packet_series_write_update(const packet_series_t* const series, gzFile handle);
