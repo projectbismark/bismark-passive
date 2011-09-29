@@ -50,11 +50,15 @@ int packet_series_write_update(const packet_series_t* const series,
   }
   int idx;
   for (idx = 0; idx < series->length; ++idx) {
+    int flow_id = series->packet_data[idx].flow;
+    if (flow_id >= FLOW_TABLE_ENTRIES) {
+      flow_id = -1;
+    }
     if (!gzprintf(handle,
-                  "%" PRId32 " %" PRIu16 " %" PRIu16 "\n",
+                  "%" PRId32 " %" PRIu16 " %d\n",
                   series->packet_data[idx].timestamp,
                   series->packet_data[idx].size,
-                  series->packet_data[idx].flow)) {
+                  flow_id)) {
 #ifndef NDEBUG
       perror("Error writing update");
 #endif
