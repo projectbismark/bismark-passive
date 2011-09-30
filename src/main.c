@@ -162,7 +162,7 @@ static void process_packet(
 #endif
   }
 
-  if (dns_bytes_len > 0) {
+  if (dns_bytes_len > 0 && mac_id >= 0) {
     process_dns_packet(dns_bytes, dns_bytes_len, &dns_table, packet_id, mac_id);
   }
 
@@ -198,11 +198,14 @@ static void write_update(const struct pcap_stat* statistics) {
 
   dns_table_mark_unanonymized(&dns_table, &flow_table);
 
+  time_t current_timestamp = time(NULL);
+
   if (!gzprintf(handle,
-                "%s %" PRId64 " %d\n",
+                "%s %" PRId64 " %d %" PRId64 "\n",
                 bismark_id,
                 first_packet_timestamp_microseconds,
-                sequence_number)) {
+                sequence_number,
+                current_timestamp)) {
 #ifndef NDEBUG
     perror("Error writing update");
 #endif
@@ -279,7 +282,7 @@ static void write_update(const struct pcap_stat* statistics) {
   }
 
   packet_series_init(&packet_data);
-  flow_table_advance_base_timestamp(&flow_table, time(NULL));
+  flow_table_advance_base_timestamp(&flow_table, current_timestamp);
   dns_table_destroy(&dns_table);
   dns_table_init(&dns_table, &domain_whitelist);
 }

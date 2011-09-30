@@ -161,7 +161,7 @@ int dns_table_write_update(dns_table_t* const table, gzFile handle) {
 #endif
       if (!gzprintf(handle,
                     "%" PRIu16 " %" PRIu8 " 0 %s %s %" PRId32 "\n",
-                    table->a_entries[idx].packet_id,
+                    table->cname_entries[idx].packet_id,
                     table->cname_entries[idx].mac_id,
                     table->cname_entries[idx].domain_name,
                     table->cname_entries[idx].cname,
@@ -188,7 +188,7 @@ int dns_table_write_update(dns_table_t* const table, gzFile handle) {
           buffer_to_hex(cname_digest, ANONYMIZATION_DIGEST_LENGTH));
       if (!gzprintf(handle,
                     "%" PRIu16 " %" PRIu8 " 1 %s %s %" PRId32 "\n",
-                    table->a_entries[idx].packet_id,
+                    table->cname_entries[idx].packet_id,
                     table->cname_entries[idx].mac_id,
                     hex_domain_digest,
                     hex_cname_digest,
