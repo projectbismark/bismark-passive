@@ -347,8 +347,12 @@ static int init_domain_whitelist() {
 
   FILE* handle = fopen(DOMAIN_WHITELIST_FILENAME, "r");
   if (!handle) {
-    perror("Cannot open domain whitelist " DOMAIN_WHITELIST_FILENAME);
-    return -1;
+    fprintf(stderr, "Using default domain whitelist");
+    handle = fopen(DEFAULT_DOMAIN_WHITELIST_FILENAME, "r");
+    if (!handle) {
+      perror("Cannot open domain whitelist " DEFAULT_DOMAIN_WHITELIST_FILENAME);
+      return -1;
+    }
   }
 
   int length;

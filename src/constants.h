@@ -51,6 +51,7 @@
 #ifndef DOMAIN_WHITELIST_FILENAME
 #define DOMAIN_WHITELIST_FILENAME "/etc/bismark/domain-whitelist.txt"
 #endif
+#define DEFAULT_DOMAIN_WHITELIST_FILENAME "/etc/bismark/default-passive-domain-whitelist.txt"
 
 #define FLOW_THRESHOLDING_LOG "/tmp/bismark-passive-flowlog"
 #define FLOW_THRESHOLD 10
