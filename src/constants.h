@@ -49,7 +49,7 @@
 #endif
 
 #ifndef DOMAIN_WHITELIST_FILENAME
-#define DOMAIN_WHITELIST_FILENAME "/tmp/etc/bismark/domain-whitelist.txt"
+#define DOMAIN_WHITELIST_FILENAME "/etc/bismark/domain-whitelist.txt"
 #endif
 #define DEFAULT_DOMAIN_WHITELIST_FILENAME "/tmp/etc/bismark/default-passive-domain-whitelist.txt"
 
