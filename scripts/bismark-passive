@@ -2,7 +2,7 @@
 
 EXE=/tmp/usr/bin/bismark-passive.bin
 IFACE=br-lan
-DELAY=3
+DELAY=10
 UPDATES_DIR=/tmp/bismark-passive/updates
 
 if ! mkdir -p $UPDATES_DIR; then
@@ -11,10 +11,9 @@ if ! mkdir -p $UPDATES_DIR; then
 fi
 
 while [ 1 ]; do
-  echo "Starting Bismark Passive"
-  $EXE $IFACE
-
-  echo "Bismark-passive has exited."
-  echo "Sleeping ${DELAY} seconds before restarting..."
+  if ! pgrep -x $EXE; then
+    echo "Starting Bismark Passive"
+    $EXE $IFACE
+  fi
   sleep $DELAY
 done
