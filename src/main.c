@@ -205,7 +205,7 @@ static void write_update(const struct pcap_stat* statistics) {
                 bismark_id,
                 first_packet_timestamp_microseconds,
                 sequence_number,
-                current_timestamp)) {
+                (int64_t)current_timestamp)) {
 #ifndef NDEBUG
     perror("Error writing update");
 #endif
