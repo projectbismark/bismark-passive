@@ -201,7 +201,7 @@ static void write_update(const struct pcap_stat* statistics) {
   time_t current_timestamp = time(NULL);
 
   if (!gzprintf(handle,
-                "%s %" PRId64 " %d %" PRId64 "!\n",
+                "%s %" PRId64 " %d %" PRId64 "\n",
                 bismark_id,
                 first_packet_timestamp_microseconds,
                 sequence_number,
