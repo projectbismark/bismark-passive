@@ -1,0 +1,13 @@
+#!/bin/sh /etc/rc.common
+
+START=99
+STOP=1
+
+start() {
+    bismark-passive
+}
+
+stop() {
+    pkill bismark-passive
+    pkill bismark-passive.bin
+}
