@@ -58,10 +58,10 @@ following format:
     [microseconds offset from previous packet] [packet size bytes] [flow id]
     
     [baseline timestamp] [num elements in flow table] [total expired flows] [total dropped flows]
-    [flow id] [anonymized?] [(hashed) source IP address] [(hashed) destination IP address] [transport protocol] [source port] [destination port]
-    [flow id] [anonymized?] [(hashed) source IP address] [(hashed) destination IP address] [transport protocol] [source port] [destination port]
+    [flow id] [anonymized source?] [(hashed) source IP address] [anonymized destination?] [(hashed) destination IP address] [transport protocol] [source port] [destination port]
+    [flow id] [anonymized source?] [(hashed) source IP address] [anonymized destination?] [(hashed) destination IP address] [transport protocol] [source port] [destination port]
     ...
-    [flow id] [anonymized?] [(hashed) source IP address] [(hashed) destination IP address] [transport protocol] [source port] [destination port]
+    [flow id] [anonymized source?] [(hashed) source IP address] [anonymized destination?] [(hashed) destination IP address] [transport protocol] [source port] [destination port]
     
     [total dropped A records] [total dropped CNAME records]
     [MAC id] [packet id] [anonymized?] [(hashed) domain name for A record] [(hashed) ip address for A record] [ttl]
