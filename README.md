@@ -41,7 +41,7 @@ following format:
 
     [file format version]
     [bismark-passive build id]
-    [bismark ID] [timestamp at process creation] [sequence number] [current timestamp in seconds]
+    [bismark ID] [timestamp at process creation in microseconds] [sequence number] [current timestamp in seconds]
     [(optional) total packets received by pcap] [(optional) total packets dropped by pcap] [(optional) total packets dropped by interface]
     
     [whitelisted domain (only when sequence number is 0)]
@@ -51,13 +51,13 @@ following format:
 
     [hash of anonymization key, or "UNANONYMIZED" if not anonymized]
     
-    [timestamp of first packet] [packets dropped]
+    [timestamp of first packet in microseconds] [packets dropped]
     [microseconds offset from previous packet] [packet size bytes] [flow id]
     [microseconds offset from previous packet] [packet size bytes] [flow id]
     ...
     [microseconds offset from previous packet] [packet size bytes] [flow id]
     
-    [baseline timestamp] [num elements in flow table] [total expired flows] [total dropped flows]
+    [baseline timestamp in seconds] [num elements in flow table] [total expired flows] [total dropped flows]
     [flow id] [anonymized source?] [(hashed) source IP address] [anonymized destination?] [(hashed) destination IP address] [transport protocol] [source port] [destination port]
     [flow id] [anonymized source?] [(hashed) source IP address] [anonymized destination?] [(hashed) destination IP address] [transport protocol] [source port] [destination port]
     ...
