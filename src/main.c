@@ -201,6 +201,15 @@ static void write_update(const struct pcap_stat* statistics) {
   time_t current_timestamp = time(NULL);
 
   if (!gzprintf(handle,
+                "%d\n%s\n",
+                FILE_FORMAT_VERSION,
+                BUILD_ID)) {
+#ifndef NDEBUG
+    perror("Error writing update");
+#endif
+    exit(1);
+  }
+  if (!gzprintf(handle,
                 "%s %" PRId64 " %d %" PRId64 "\n",
                 bismark_id,
                 first_packet_timestamp_microseconds,

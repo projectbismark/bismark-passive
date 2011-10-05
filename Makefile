@@ -1,5 +1,8 @@
 CC = gcc
 CFLAGS += -c -Wall -O3 -fno-strict-aliasing
+ifdef BUILD_ID
+CFLAGS += -DBUILD_ID="\"$(BUILD_ID)\""
+endif
 ifdef DISABLE_ANONYMIZATION
 CFLAGS += -DDISABLE_ANONYMIZATION
 endif
