@@ -39,6 +39,8 @@ Bismark-passive periodically generates differential updates about the traffic it
 has observed since the last update. Updates are gzipped text files with the
 following format:
 
+    [file format version]
+    [bismark-passive build id]
     [bismark ID] [timestamp at process creation] [sequence number] [current timestamp in seconds]
     [(optional) total packets received by pcap] [(optional) total packets dropped by pcap] [(optional) total packets dropped by interface]
     
