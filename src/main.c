@@ -58,7 +58,7 @@ static int64_t first_packet_timestamp_microseconds = -1;
 static int sequence_number = 0;
 
 /* This extracts flow information from raw packet contents. */
-static void get_flow_entry_for_packet(
+static uint16_t get_flow_entry_for_packet(
     const u_char* const bytes,
     int len,
     flow_table_entry_t* const entry,
@@ -66,7 +66,8 @@ static void get_flow_entry_for_packet(
     u_char** const dns_bytes,
     int* const dns_bytes_len) {
   const struct ether_header* const eth_header = (struct ether_header*)bytes;
-  if (ntohs(eth_header->ether_type) == ETHERTYPE_IP) {
+  uint16_t ether_type = ntohs(eth_header->ether_type);
+  if (ether_type == ETHERTYPE_IP) {
     const struct iphdr* ip_header = (struct iphdr*)(bytes + ETHER_HDR_LEN);
     entry->ip_source = ntohl(ip_header->saddr);
     entry->ip_destination = ntohl(ip_header->daddr);
@@ -99,9 +100,10 @@ static void get_flow_entry_for_packet(
     }
   } else {
 #ifndef NDEBUG
-    fprintf(stderr, "Unhandled network protocol: %hu\n", ntohs(eth_header->ether_type));
+    fprintf(stderr, "Unhandled network protocol: %hu\n", ether_type);
 #endif
   }
+  return ether_type;
 }
 
 /* libpcap calls this function for every packet it receives. */
@@ -144,18 +146,49 @@ static void process_packet(
   int mac_id = -1;
   u_char* dns_bytes;
   int dns_bytes_len = -1;
-  get_flow_entry_for_packet(
+  int ether_type = get_flow_entry_for_packet(
       bytes, header->caplen, &flow_entry, &mac_id, &dns_bytes, &dns_bytes_len);
-  int table_idx = flow_table_process_flow(
-      &flow_table, &flow_entry, header->ts.tv_sec);
+  uint16_t flow_id;
+  switch (ether_type) {
+    case ETHERTYPE_AARP:
+      flow_id = FLOW_ID_AARP;
+      break;
+    case ETHERTYPE_ARP:
+      flow_id = FLOW_ID_ARP;
+      break;
+    case ETHERTYPE_AT:
+      flow_id = FLOW_ID_AT;
+      break;
+    case ETHERTYPE_IP:
+      {
+        int table_idx = flow_table_process_flow(
+            &flow_table, &flow_entry, header->ts.tv_sec);
+        if (table_idx >= 0) {
+          flow_id = FLOW_ID_FIRST_UNRESERVED + table_idx;
+        } else {
 #ifndef NDEBUG
-  if (table_idx < 0) {
-    fprintf(stderr, "Error adding to flow table\n");
-  }
+          fprintf(stderr, "Error adding to flow table\n");
 #endif
+          flow_id = FLOW_ID_ERROR;
+        }
+      }
+      break;
+    case ETHERTYPE_IPV6:
+      flow_id = FLOW_ID_IPV6;
+      break;
+    case ETHERTYPE_IPX:
+      flow_id = FLOW_ID_IPX;
+      break;
+    case ETHERTYPE_REVARP:
+      flow_id = FLOW_ID_REVARP;
+      break;
+    default:
+      flow_id = FLOW_ID_ERROR;
+      break;
+  }
 
   int packet_id = packet_series_add_packet(
-        &packet_data, &header->ts, header->len, table_idx);
+        &packet_data, &header->ts, header->len, flow_id);
   if (packet_id < 0) {
 #ifndef NDEBUG
     fprintf(stderr, "Error adding to packet series\n");

@@ -16,14 +16,29 @@
  * source and destination IP addresses are written to FLOW_THRESHOLDING_LOG. */
 /*#define DISABLE_FLOW_THRESHOLDING*/
 
-#define FILE_FORMAT_VERSION 1
+#define FILE_FORMAT_VERSION 2
 #ifndef BUILD_ID
 #define BUILD_ID "UNKNOWN"
 #endif
 
 /* Max is 65536, unless you modify dns_table.h */
 #define PACKET_DATA_BUFFER_ENTRIES 65536
-#define FLOW_TABLE_ENTRIES 65535
+
+/* Last few indices of flow table reserved for alternate network protocols. */
+enum reserved_flow_indices {
+  FLOW_ID_ERROR,
+  FLOW_ID_AARP,
+  FLOW_ID_ARP,
+  FLOW_ID_AT,
+  FLOW_ID_IPV6,
+  FLOW_ID_IPX,
+  FLOW_ID_REVARP,
+  FLOW_ID_FIRST_UNRESERVED,
+  FLOW_ID_LAST_UNRESERVED = 65535
+};
+/* IMPORTANT: FLOW_TABLE_ENTRIES <= min(FLOW_ID_*) */
+#define FLOW_TABLE_ENTRIES (FLOW_ID_LAST_UNRESERVED - FLOW_ID_FIRST_UNRESERVED + 1)
+
 #define DNS_TABLE_A_ENTRIES 1024
 #define DNS_TABLE_CNAME_ENTRIES 1024
 #define MAC_TABLE_ENTRIES 256
