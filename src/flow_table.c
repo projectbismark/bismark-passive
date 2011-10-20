@@ -54,7 +54,7 @@ int flow_table_process_flow(flow_table_t* const table,
         || timestamp_seconds - table->base_timestamp_seconds
             < FLOW_TABLE_MIN_UPDATE_OFFSET)) {
     ++table->num_dropped_flows;
-    return -1;
+    return FLOW_ID_ERROR;
   }
 
   int first_available = -1;
@@ -83,7 +83,7 @@ int flow_table_process_flow(flow_table_t* const table,
         ++entry->num_packets;
       }
 #endif
-      return table_idx;
+      return table_idx + FLOW_ID_FIRST_UNRESERVED;
     }
     if (entry->occupied != ENTRY_OCCUPIED
         && entry->occupied != ENTRY_OCCUPIED_BUT_UNSENT) {
@@ -98,7 +98,7 @@ int flow_table_process_flow(flow_table_t* const table,
 
   if (first_available < 0) {
     ++table->num_dropped_flows;
-    return -1;
+    return FLOW_ID_ERROR;
   }
 
   if (table->num_elements == 0) {
@@ -112,7 +112,7 @@ int flow_table_process_flow(flow_table_t* const table,
       = timestamp_seconds - table->base_timestamp_seconds;
   table->entries[first_available] = *new_entry;
   ++table->num_elements;
-  return first_available;
+  return first_available + FLOW_ID_FIRST_UNRESERVED;
 }
 
 void flow_table_advance_base_timestamp(flow_table_t* const table,
@@ -236,7 +236,7 @@ int flow_table_write_thresholded_ips(const flow_table_t* const table,
         && table->entries[idx].num_packets >= FLOW_THRESHOLD) {
       if (fprintf(handle,
                   "%d %" PRIx32 " %" PRIx32 " %" PRIu8 "\n",
-                  idx,
+                  idx + FLOW_ID_FIRST_UNRESERVED,
                   table->entries[idx].ip_source,
                   table->entries[idx].ip_destination,
                   table->entries[idx].num_packets) < 0) {

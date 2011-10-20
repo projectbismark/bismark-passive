@@ -188,17 +188,20 @@ START_TEST(test_flows_can_probe) {
   entry.transport_protocol = 3;
   entry.port_source = 4;
   entry.port_destination = 5;
-  fail_unless(flow_table_process_flow(&table, &entry, kMySec) == 0);
+  fail_unless(flow_table_process_flow(&table, &entry, kMySec)
+      == FLOW_ID_FIRST_UNRESERVED);
   fail_unless(table.entries[0].occupied == ENTRY_OCCUPIED_BUT_UNSENT);
   fail_unless(table.num_elements == 1);
 
   entry.ip_source = 10;
-  fail_unless(flow_table_process_flow(&table, &entry, kMySec) == 1);
+  fail_unless(flow_table_process_flow(&table, &entry, kMySec)
+      == FLOW_ID_FIRST_UNRESERVED + 1);
   fail_unless(table.entries[1].occupied == ENTRY_OCCUPIED_BUT_UNSENT);
   fail_unless(table.num_elements == 2);
 
   entry.ip_source = 20;
-  fail_unless(flow_table_process_flow(&table, &entry, kMySec) == 3);
+  fail_unless(flow_table_process_flow(&table, &entry, kMySec)
+      == FLOW_ID_FIRST_UNRESERVED + 3);
   fail_unless(table.entries[3].occupied == ENTRY_OCCUPIED_BUT_UNSENT);
   fail_unless(table.num_elements == 3);
 
@@ -211,7 +214,7 @@ START_TEST(test_flows_can_probe) {
   }
 
   entry.ip_source = 11;
-  fail_unless(flow_table_process_flow(&table, &entry, kMySec) < 0);
+  fail_unless(flow_table_process_flow(&table, &entry, kMySec) == FLOW_ID_ERROR);
   fail_unless(table.num_elements == HT_NUM_PROBES);
   fail_unless(table.num_dropped_flows == 1);
   fail_unless(table.num_expired_flows == 0);
@@ -263,7 +266,8 @@ START_TEST(test_flows_can_advance_base_timestamp) {
     }
   }
 
-  flow_table_advance_base_timestamp(&table, kMySec - FLOW_TABLE_MIN_UPDATE_OFFSET + 1);
+  flow_table_advance_base_timestamp(&table,
+                                    kMySec - FLOW_TABLE_MIN_UPDATE_OFFSET + 1);
   fail_unless(table.num_elements == 0);
   for (idx = 0; idx < FLOW_TABLE_ENTRIES; ++idx) {
     fail_if(table.entries[idx].occupied == ENTRY_OCCUPIED_BUT_UNSENT
@@ -284,10 +288,12 @@ START_TEST(test_flows_enforce_timestamp_bounds) {
 
   entry.ip_source = 10;
   time_t later_timestamp = kMySec + FLOW_TABLE_MAX_UPDATE_OFFSET + 1;
-  fail_unless(flow_table_process_flow(&table, &entry, later_timestamp) < 0);
+  fail_unless(flow_table_process_flow(&table, &entry, later_timestamp)
+      == FLOW_ID_ERROR);
 
   time_t earlier_timestamp = kMySec + FLOW_TABLE_MIN_UPDATE_OFFSET - 1;
-  fail_unless(flow_table_process_flow(&table, &entry, earlier_timestamp) < 0);
+  fail_unless(flow_table_process_flow(&table, &entry, earlier_timestamp)
+      == FLOW_ID_ERROR);
 }
 END_TEST
 
@@ -298,11 +304,13 @@ START_TEST(test_flows_can_set_last_update_time) {
   entry.transport_protocol = 3;
   entry.port_source = 4;
   entry.port_destination = 5;
-  fail_unless(flow_table_process_flow(&table, &entry, kMySec) == 0);
+  fail_unless(flow_table_process_flow(&table, &entry, kMySec)
+      == FLOW_ID_FIRST_UNRESERVED);
   fail_unless(table.entries[0].last_update_time_seconds == 0);
   fail_unless(table.num_elements == 1);
 
-  fail_unless(flow_table_process_flow(&table, &entry, kMySec + 60) == 0);
+  fail_unless(flow_table_process_flow(&table, &entry, kMySec + 60)
+      == FLOW_ID_FIRST_UNRESERVED);
   fail_unless(table.entries[0].last_update_time_seconds == 60);
   fail_unless(table.num_elements == 1);
 
@@ -329,7 +337,8 @@ START_TEST(test_flows_can_expire) {
 
   entry.ip_source = 3;
   fail_unless(flow_table_process_flow(
-        &table, &entry, kMySec + FLOW_TABLE_EXPIRATION_SECONDS + 1) == 0);
+        &table, &entry, kMySec + FLOW_TABLE_EXPIRATION_SECONDS + 1)
+      == FLOW_ID_FIRST_UNRESERVED);
   fail_unless(table.num_elements == 1);
   fail_unless(table.entries[0].occupied == ENTRY_OCCUPIED_BUT_UNSENT);
   fail_unless(table.entries[1].occupied == ENTRY_DELETED);
@@ -355,7 +364,8 @@ START_TEST(test_flows_can_detect_later_dupes) {
   flows_simulate_update();
 
   fail_unless(flow_table_process_flow(
-        &table, &entry, kMySec + FLOW_TABLE_EXPIRATION_SECONDS + 1) == 1);
+        &table, &entry, kMySec + FLOW_TABLE_EXPIRATION_SECONDS + 1)
+      == FLOW_ID_FIRST_UNRESERVED + 1);
   fail_unless(table.num_elements == 1);
   fail_unless(table.entries[0].occupied == ENTRY_DELETED);
   fail_unless(table.entries[1].occupied == ENTRY_OCCUPIED);

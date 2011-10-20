@@ -161,16 +161,14 @@ static void process_packet(
       break;
     case ETHERTYPE_IP:
       {
-        int table_idx = flow_table_process_flow(
-            &flow_table, &flow_entry, header->ts.tv_sec);
-        if (table_idx >= 0) {
-          flow_id = FLOW_ID_FIRST_UNRESERVED + table_idx;
-        } else {
+        flow_id = flow_table_process_flow(&flow_table,
+                                          &flow_entry,
+                                          header->ts.tv_sec);
 #ifndef NDEBUG
+        if (flow_id == FLOW_ID_ERROR) {
           fprintf(stderr, "Error adding to flow table\n");
-#endif
-          flow_id = FLOW_ID_ERROR;
         }
+#endif
       }
       break;
     case ETHERTYPE_IPV6:

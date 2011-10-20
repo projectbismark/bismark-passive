@@ -58,8 +58,8 @@ void flow_table_entry_init(flow_table_entry_t* const entry);
 
 /* Add a flow to the hash table if it doesn't already exist. Does not claim
  * ownership of entry or timestamp. If expired entries are encountered in the
- * process, then delete them. Return the table index of the new flow or
- * -1 if no space was available. */
+ * process, then delete them. Return the offset table index of the new flow or
+ * FLOW_ID_ERROR if no space was available. */
 int flow_table_process_flow(flow_table_t* const table,
                             flow_table_entry_t* const entry,
                             time_t timestamp_seconds);
