@@ -181,7 +181,7 @@ int flow_table_write_update(flow_table_t* const table, gzFile handle) {
 
       if (!gzprintf(handle,
             "%d %d %" PRIx64 " %d %" PRIx64 " %" PRIu8 " %" PRIu16 " %" PRIu16 "\n",
-            idx,
+            idx + FLOW_ID_FIRST_UNRESERVED,
             !table->entries[idx].ip_source_unanonymized,
             source_digest,
             !table->entries[idx].ip_destination_unanonymized,
