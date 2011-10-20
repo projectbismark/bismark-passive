@@ -52,10 +52,10 @@ following format:
     [hash of anonymization key, or "UNANONYMIZED" if not anonymized]
     
     [timestamp of first packet in microseconds] [packets dropped]
-    [microseconds offset from previous packet] [packet size bytes] [flow id (see note)]
-    [microseconds offset from previous packet] [packet size bytes] [flow id (see note)]
+    [microseconds offset from previous packet] [packet size bytes] [flow id (see notes)]
+    [microseconds offset from previous packet] [packet size bytes] [flow id (see notes)]
     ...
-    [microseconds offset from previous packet] [packet size bytes] [flow id (see note)]
+    [microseconds offset from previous packet] [packet size bytes] [flow id (see notes)]
     
     [baseline timestamp in seconds] [num elements in flow table] [total expired flows] [total dropped flows]
     [flow id] [anonymized source?] [(hashed) source IP address] [anonymized destination?] [(hashed) destination IP address] [transport protocol] [source port] [destination port]
@@ -80,9 +80,11 @@ following format:
     ...
     [MAC address with lower 24 bits hashed] [hashed IP address]
 
-**[Version 2+] Note about flow ids:** The first few flow IDs are reserved to
-denote non-IP network protocols. See the `reserved_flow_indices` enum
-`src/constants.h` for the full list.
+### Notes
+
+1. (Version 2+) The first few flow IDs are reserved to denote non-IP network
+protocols. See the `reserved_flow_indices` enum in `src/constants.h` for the
+full list.
 
 Complexity of resource usage
 ----------------------------
