@@ -80,12 +80,10 @@ following format:
     ...
     [MAC address with lower 24 bits hashed] [hashed IP address]
 
-    [number of packets dropped with size 64 to 128]
-    [number of packets dropped with size 128 to 256]
-    [number of packets dropped with size 256 to 512]
-    [number of packets dropped with size 512 to 1024]
-    [number of packets dropped with size 1024 to 1450]
-    [number of packets dropped with size 1450 or greater]
+    [size of dropped packet] [number of packets dropped]
+    [size of dropped packet] [number of packets dropped]
+    ...
+    [size of dropped packet] [number of packets dropped]
 
 ### Notes
 
