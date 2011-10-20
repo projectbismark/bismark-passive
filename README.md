@@ -90,6 +90,7 @@ following format:
 1. (Version 2+) The first few flow IDs are reserved to denote non-IP network
 protocols. See the `reserved_flow_indices` enum in `src/constants.h` for the
 full list.
+2. (Version 2+) Dropped packets support added in file format version 2.
 
 Complexity of resource usage
 ----------------------------
