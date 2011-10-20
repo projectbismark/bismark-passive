@@ -76,6 +76,8 @@ enum reserved_flow_indices {
 #define FLOW_THRESHOLDING_LOG "/tmp/bismark-passive-flowlog"
 #define FLOW_THRESHOLD 10
 
+#define DROP_STATISTICS_MAXIMUM_PACKET_SIZE 1500
+
 /* Hashtable parameters */
 #define HT_NUM_PROBES 3
 #define HT_C1 0.5

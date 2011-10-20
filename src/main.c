@@ -33,6 +33,7 @@
 #endif
 #include "dns_parser.h"
 #include "dns_table.h"
+#include "drop_statistics.h"
 #include "flow_table.h"
 #include "packet_series.h"
 #include "whitelist.h"
@@ -42,6 +43,7 @@ static flow_table_t flow_table;
 static dns_table_t dns_table;
 static address_table_t address_table;
 static domain_whitelist_t domain_whitelist;
+static drop_statistics_t drop_statistics;
 
 static pthread_t update_thread;
 static pthread_mutex_t update_lock;
@@ -191,6 +193,7 @@ static void process_packet(
 #ifndef NDEBUG
     fprintf(stderr, "Error adding to packet series\n");
 #endif
+    drop_statistics_process_packet(&drop_statistics, header->len);
   }
 
   if (dns_bytes_len > 0 && mac_id >= 0) {
@@ -293,16 +296,11 @@ static void write_update(const struct pcap_stat* statistics) {
     exit(1);
   }
 #endif
-  if (packet_series_write_update(&packet_data, handle)) {
-    exit(1);
-  }
-  if (flow_table_write_update(&flow_table, handle)) {
-    exit(1);
-  }
-  if (dns_table_write_update(&dns_table, handle)) {
-    exit(1);
-  }
-  if (address_table_write_update(&address_table, handle)) {
+  if (packet_series_write_update(&packet_data, handle)
+      || flow_table_write_update(&flow_table, handle)
+      || dns_table_write_update(&dns_table, handle)
+      || address_table_write_update(&address_table, handle)
+      || drop_statistics_write_update(&drop_statistics, handle)) {
     exit(1);
   }
   gzclose(handle);
@@ -325,6 +323,7 @@ static void write_update(const struct pcap_stat* statistics) {
   flow_table_advance_base_timestamp(&flow_table, current_timestamp);
   dns_table_destroy(&dns_table);
   dns_table_init(&dns_table, &domain_whitelist);
+  drop_statistics_init(&drop_statistics);
 }
 
 static void* updater(void* arg) {
@@ -457,6 +456,7 @@ int main(int argc, char *argv[]) {
   flow_table_init(&flow_table);
   dns_table_init(&dns_table, &domain_whitelist);
   address_table_init(&address_table);
+  drop_statistics_init(&drop_statistics);
 
   if (pthread_mutex_init(&update_lock, NULL)) {
     perror("Error initializing mutex");
