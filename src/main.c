@@ -26,6 +26,8 @@
 #include <netinet/tcp.h>
 /* struct udphdr */
 #include <netinet/udp.h>
+/* gettimeofday */
+#include <sys/time.h>
 
 #include "address_table.h"
 #ifndef DISABLE_ANONYMIZATION
@@ -51,10 +53,10 @@ static pthread_mutex_t update_lock;
 /* Will be filled in the bismark node ID, from /etc/bismark/ID. */
 static char bismark_id[256];
 
-/* Will be filled in with the timestamp of the first packet pcap gives us. This
+/* Will be filled in with the current timestamp when the program starts. This
  * value serves as a unique identifier across instances of bismark-passive that
  * have run on the same machine. */
-static int64_t first_packet_timestamp_microseconds = -1;
+static int64_t start_timestamp_microseconds;
 
 /* Will be incremented and sent with each update. */
 static int sequence_number = 0;
@@ -138,11 +140,6 @@ static void process_packet(
   }
 #endif
 
-  if (first_packet_timestamp_microseconds < 0) {
-    first_packet_timestamp_microseconds
-        = header->ts.tv_sec * NUM_MICROS_PER_SECOND + header->ts.tv_usec;
-  }
-
   flow_table_entry_t flow_entry;
   flow_table_entry_init(&flow_entry);
   int mac_id = -1;
@@ -211,7 +208,7 @@ static void process_packet(
 static void write_update(const struct pcap_stat* statistics) {
 #ifndef DISABLE_FLOW_THRESHOLDING
   if (flow_table_write_thresholded_ips(&flow_table,
-                                       first_packet_timestamp_microseconds,
+                                       start_timestamp_microseconds,
                                        sequence_number)) {
 #ifndef NDEBUG
     fprintf(stderr, "Couldn't write thresholded flows log\n");
@@ -246,7 +243,7 @@ static void write_update(const struct pcap_stat* statistics) {
   if (!gzprintf(handle,
                 "%s %" PRId64 " %d %" PRId64 "\n",
                 bismark_id,
-                first_packet_timestamp_microseconds,
+                start_timestamp_microseconds,
                 sequence_number,
                 (int64_t)current_timestamp)) {
 #ifndef NDEBUG
@@ -310,7 +307,7 @@ static void write_update(const struct pcap_stat* statistics) {
            FILENAME_MAX,
            UPDATE_FILENAME,
            bismark_id,
-           first_packet_timestamp_microseconds,
+           start_timestamp_microseconds,
            sequence_number);
   if (rename(PENDING_UPDATE_FILENAME, update_filename)) {
 #ifndef NDEBUG
@@ -432,6 +429,11 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "Usage: %s <interface>\n", argv[0]);
     return 1;
   }
+
+  struct timeval start_timeval;
+  gettimeofday(&start_timeval, NULL);
+  start_timestamp_microseconds
+      = start_timeval.tv_sec * NUM_MICROS_PER_SECOND + start_timeval.tv_usec;
 
   if (init_bismark_id()) {
     return 1;
