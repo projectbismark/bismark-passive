@@ -10,9 +10,7 @@ Installation instructions
 -------------------------
 
 1. Follow instructions at `dp4:/data/users/bismark/openwrt/src/instructions.txt` to
-prepare a build tree.  When cloning the bismark-packages repository, be sure to
-add the `-b passive` option to clone the passive branch of the
-repository.
+prepare a build tree.
 2. From the OpenWRT build directory:
     - `scripts/feeds install bismark-passive-git`
     - `make package/bismark-passive-git/compile`
