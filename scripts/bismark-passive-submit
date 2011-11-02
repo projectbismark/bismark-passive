@@ -1,10 +1,9 @@
 #!/bin/sh
 
 . /etc/bismark/bismark.conf
+. /tmp/etc/bismark/default-bismark-passive.conf
 if [ -f /etc/bismark/bismark-passive.conf ]; then
     . /etc/bismark/bismark-passive.conf
-else
-    . /tmp/etc/bismark/default-bismark-passive.conf
 fi
 
 SUBMISSIONS_DIR="/tmp/bismark-passive/updates"

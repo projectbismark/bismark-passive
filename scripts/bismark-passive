@@ -1,9 +1,8 @@
 #!/bin/sh
 
+. /tmp/etc/bismark/default-bismark-passive.conf
 if [ -f /etc/bismark/bismark-passive.conf ]; then
     . /etc/bismark/bismark-passive.conf
-else
-    . /tmp/etc/bismark/default-bismark-passive.conf
 fi
 
 EXE=/tmp/usr/bin/bismark-passive.bin
