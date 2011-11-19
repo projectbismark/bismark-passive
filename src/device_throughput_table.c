@@ -38,7 +38,7 @@ int device_throughput_table_record(device_throughput_table_t* const table,
 
 int device_throughput_table_write_update(device_throughput_table_t* const table,
                                          FILE* handle) {
-  if (!fprintf(handle, "%d\n", table->length)) {
+  if (fprintf(handle, "%d\n", table->length) < 0) {
 #ifndef NDEBUG
     perror("Error writing update");
 #endif
@@ -55,15 +55,15 @@ int device_throughput_table_write_update(device_throughput_table_t* const table,
 #endif
       return -1;
     }
-    if (!fprintf(handle,
-                 "%s %" PRId32 "\n",
-                 buffer_to_hex(digest_mac, ETH_ALEN),
-                 table->entries[idx].bytes_transferred)) {
+    if (fprintf(handle,
+                "%s %" PRId32 "\n",
+                buffer_to_hex(digest_mac, ETH_ALEN),
+                table->entries[idx].bytes_transferred) < 0) {
 #else
-    if (!fprintf(handle,
-                 "%s %" PRId32 "\n",
-                 buffer_to_hex(table->entries[idx].mac_address, ETH_ALEN),
-                 table->entries[idx].bytes_transferred)) {
+    if (fprintf(handle,
+                "%s %" PRId32 "\n",
+                buffer_to_hex(table->entries[idx].mac_address, ETH_ALEN),
+                table->entries[idx].bytes_transferred) < 0) {
 #endif
 #ifndef NDEBUG
       perror("Error writing update");
@@ -71,7 +71,7 @@ int device_throughput_table_write_update(device_throughput_table_t* const table,
       return -1;
     }
   }
-  if (!fprintf(handle, "\n")) {
+  if (fprintf(handle, "\n") < 0) {
 #ifndef NDEBUG
     perror("Error writing update");
 #endif

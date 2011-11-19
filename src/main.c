@@ -373,6 +373,27 @@ static void write_frequent_update() {
 #endif
     exit(1);
   }
+  if (!fprintf(handle,
+               "%d\n%s\n",
+               FREQUENT_FILE_FORMAT_VERSION,
+               BUILD_ID) < 0) {
+#ifndef NDEBUG
+    perror("Error writing update");
+#endif
+    exit(1);
+  }
+  time_t current_timestamp = time(NULL);
+  if (!fprintf(handle,
+               "%s %" PRId64 " %d %" PRId64 "\n",
+               bismark_id,
+               start_timestamp_microseconds,
+               frequent_sequence_number,
+               (int64_t)current_timestamp) < 0) {
+#ifndef NDEBUG
+    perror("Error writing update");
+#endif
+    exit(1);
+  }
   if (device_throughput_table_write_update(&device_throughput_table, handle)) {
     exit(1);
   }
