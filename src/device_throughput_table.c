@@ -1,0 +1,81 @@
+#include "device_throughput_table.h"
+
+#include <inttypes.h>
+#include <stdio.h>
+#include <string.h>
+
+#include "anonymization.h"
+#include "util.h"
+
+void device_throughput_table_init(device_throughput_table_t* const table) {
+  table->length = 0;
+}
+
+int device_throughput_table_record(device_throughput_table_t* const table,
+                                   const uint8_t mac_address[ETH_ALEN],
+                                   const uint32_t bytes_transferred) {
+  int idx;
+  for (idx = 0; idx < table->length; ++idx) {
+    if (memcmp(table->entries[idx].mac_address,
+               mac_address,
+               sizeof(mac_address)) == 0) {
+      table->entries[idx].bytes_transferred += bytes_transferred;
+      return 0;
+    }
+  }
+
+  if (table->length >= DEVICE_THROUGHPUT_TABLE_SIZE) {
+    return -1;
+  }
+
+  memcpy(table->entries[table->length].mac_address,
+         mac_address,
+         sizeof(mac_address));
+  table->entries[table->length].bytes_transferred = bytes_transferred;
+  ++table->length;
+  return 0;
+}
+
+int device_throughput_table_write_update(device_throughput_table_t* const table,
+                                         gzFile handle) {
+  if (!gzprintf(handle, "%d\n", table->length)) {
+#ifndef NDEBUG
+    perror("Error writing update");
+#endif
+    return -1;
+  }
+
+  int idx;
+  for (idx = 0; idx < table->length; ++idx) {
+#ifndef DISABLE_ANONYMIZATION
+    uint8_t digest_mac[ETH_ALEN];
+    if (anonymize_mac(table->entries[idx].mac_address, digest_mac)) {
+#ifndef NDEBUG
+      fprintf(stderr, "Error anonymizing MAC address\n");
+#endif
+      return -1;
+    }
+    if (!gzprintf(handle,
+                  "%s %" PRId32 "\n",
+                  buffer_to_hex(digest_mac, ETH_ALEN),
+                  table->entries[idx].bytes_transferred)) {
+#else
+    if (!gzprintf(handle,
+                  "%s %" PRId32 "\n",
+                  buffer_to_hex(table->entries[idx].mac_address, ETH_ALEN),
+                  table->entries[idx].bytes_transferred)) {
+#endif
+#ifndef NDEBUG
+      perror("Error writing update");
+#endif
+      return -1;
+    }
+  }
+  if (!gzprintf(handle, "\n")) {
+#ifndef NDEBUG
+    perror("Error writing update");
+#endif
+    return -1;
+  }
+  return 0;
+}

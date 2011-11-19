@@ -56,8 +56,13 @@ enum reserved_flow_indices {
 #ifndef UPDATE_PERIOD_SECONDS
 #define UPDATE_PERIOD_SECONDS 30
 #endif
+#ifndef FREQUENT_UPDATE_PERIOD_SECONDS
+#define FREQUENT_UPDATE_PERIOD_SECONDS 5
+#endif
 #define PENDING_UPDATE_FILENAME "/tmp/bismark-passive/current-update.gz"
+#define PENDING_FREQUENT_UPDATE_FILENAME "/tmp/bismark-passive/current-frequent-update.gz"
 #define UPDATE_FILENAME "/tmp/bismark-passive/updates/%s-%" PRIu64 "-%d.gz"
+#define FREQUENT_UPDATE_FILENAME "/tmp/bismark-passive/frequent-updates/%s-%" PRIu64 "-%d.gz"
 
 #ifndef BISMARK_ID_FILENAME
 #define BISMARK_ID_FILENAME "/etc/bismark/ID"
@@ -77,6 +82,8 @@ enum reserved_flow_indices {
 #define FLOW_THRESHOLD 10
 
 #define DROP_STATISTICS_MAXIMUM_PACKET_SIZE 1500
+
+#define DEVICE_THROUGHPUT_TABLE_SIZE 256
 
 /* Hashtable parameters */
 #define HT_NUM_PROBES 3

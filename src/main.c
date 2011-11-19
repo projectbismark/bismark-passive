@@ -33,6 +33,7 @@
 #ifndef DISABLE_ANONYMIZATION
 #include "anonymization.h"
 #endif
+#include "device_throughput_table.h"
 #include "dns_parser.h"
 #include "dns_table.h"
 #include "drop_statistics.h"
@@ -46,8 +47,10 @@ static dns_table_t dns_table;
 static address_table_t address_table;
 static domain_whitelist_t domain_whitelist;
 static drop_statistics_t drop_statistics;
+static device_throughput_table_t device_throughput_table;
 
 static pthread_t update_thread;
+static pthread_t frequent_update_thread;
 static pthread_mutex_t update_lock;
 
 /* Will be filled in the bismark node ID, from /etc/bismark/ID. */
@@ -61,16 +64,29 @@ static int64_t start_timestamp_microseconds;
 /* Will be incremented and sent with each update. */
 static int sequence_number = 0;
 
+static int frequent_sequence_number = 0;
+
 /* This extracts flow information from raw packet contents. */
 static uint16_t get_flow_entry_for_packet(
     const u_char* const bytes,
-    int len,
+    int cap_length,
+    int full_length,
     flow_table_entry_t* const entry,
     int* const mac_id,
     u_char** const dns_bytes,
     int* const dns_bytes_len) {
   const struct ether_header* const eth_header = (struct ether_header*)bytes;
   uint16_t ether_type = ntohs(eth_header->ether_type);
+  if (device_throughput_table_record(&device_throughput_table,
+                                     eth_header->ether_shost,
+                                     full_length)
+      || device_throughput_table_record(&device_throughput_table,
+                                        eth_header->ether_dhost,
+                                        full_length)) {
+#ifndef NDEBUG
+    fprintf(stderr, "Error adding to device throughput table\n");
+#endif
+  }
   if (ether_type == ETHERTYPE_IP) {
     const struct iphdr* ip_header = (struct iphdr*)(bytes + ETHER_HDR_LEN);
     entry->ip_source = ntohl(ip_header->saddr);
@@ -93,7 +109,7 @@ static uint16_t get_flow_entry_for_packet(
 
       if (entry->port_source == NS_DEFAULTPORT) {
         *dns_bytes = (u_char*)udp_header + sizeof(struct udphdr);
-        *dns_bytes_len = len - (*dns_bytes - bytes);
+        *dns_bytes_len = cap_length - (*dns_bytes - bytes);
         *mac_id = address_table_lookup(
             &address_table, entry->ip_destination, eth_header->ether_dhost);
       }
@@ -146,7 +162,7 @@ static void process_packet(
   u_char* dns_bytes;
   int dns_bytes_len = -1;
   int ether_type = get_flow_entry_for_packet(
-      bytes, header->caplen, &flow_entry, &mac_id, &dns_bytes, &dns_bytes_len);
+      bytes, header->caplen, header->len, &flow_entry, &mac_id, &dns_bytes, &dns_bytes_len);
   uint16_t flow_id;
   switch (ether_type) {
     case ETHERTYPE_AARP:
@@ -349,6 +365,53 @@ static void* updater(void* arg) {
   }
 }
 
+static void write_frequent_update() {
+  gzFile handle = gzopen (PENDING_FREQUENT_UPDATE_FILENAME, "wb");
+  if (!handle) {
+#ifndef NDEBUG
+    perror("Could not open update file for writing");
+#endif
+    exit(1);
+  }
+  if (device_throughput_table_write_update(&device_throughput_table, handle)) {
+    exit(1);
+  }
+  gzclose(handle);
+
+  char update_filename[FILENAME_MAX];
+  snprintf(update_filename,
+           FILENAME_MAX,
+           FREQUENT_UPDATE_FILENAME,
+           bismark_id,
+           start_timestamp_microseconds,
+           frequent_sequence_number);
+  if (rename(PENDING_FREQUENT_UPDATE_FILENAME, update_filename)) {
+#ifndef NDEBUG
+    perror("Could not stage update");
+#endif
+    exit(1);
+  }
+
+  device_throughput_table_init(&device_throughput_table);
+}
+
+static void* frequent_updater(void* arg) {
+  while (1) {
+    sleep (FREQUENT_UPDATE_PERIOD_SECONDS);
+
+    if (pthread_mutex_lock(&update_lock)) {
+      perror("Error acquiring mutex for update");
+      exit(1);
+    }
+    write_frequent_update();
+    ++frequent_sequence_number;
+    if (pthread_mutex_unlock(&update_lock)) {
+      perror("Error unlocking update mutex");
+      exit(1);
+    }
+  }
+}
+
 static pcap_t* initialize_pcap(const char* const interface) {
   char errbuf[PCAP_ERRBUF_SIZE];
   pcap_t* const handle = pcap_open_live(interface, BUFSIZ, 0, 1000, errbuf);
@@ -459,6 +522,7 @@ int main(int argc, char *argv[]) {
   dns_table_init(&dns_table, &domain_whitelist);
   address_table_init(&address_table);
   drop_statistics_init(&drop_statistics);
+  device_throughput_table_init(&device_throughput_table);
 
   if (pthread_mutex_init(&update_lock, NULL)) {
     perror("Error initializing mutex");
@@ -466,6 +530,7 @@ int main(int argc, char *argv[]) {
   }
 
   pthread_create(&update_thread, NULL, updater, handle);
+  pthread_create(&frequent_update_thread, NULL, frequent_updater, NULL);
 
   /* By default, pcap uses an internal buffer of 500 KB. Any packets that
    * overflow this buffer will be dropped. pcap_stats tells the number of
