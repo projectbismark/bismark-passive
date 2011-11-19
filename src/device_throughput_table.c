@@ -37,8 +37,8 @@ int device_throughput_table_record(device_throughput_table_t* const table,
 }
 
 int device_throughput_table_write_update(device_throughput_table_t* const table,
-                                         gzFile handle) {
-  if (!gzprintf(handle, "%d\n", table->length)) {
+                                         FILE* handle) {
+  if (!fprintf(handle, "%d\n", table->length)) {
 #ifndef NDEBUG
     perror("Error writing update");
 #endif
@@ -55,15 +55,15 @@ int device_throughput_table_write_update(device_throughput_table_t* const table,
 #endif
       return -1;
     }
-    if (!gzprintf(handle,
-                  "%s %" PRId32 "\n",
-                  buffer_to_hex(digest_mac, ETH_ALEN),
-                  table->entries[idx].bytes_transferred)) {
+    if (!fprintf(handle,
+                 "%s %" PRId32 "\n",
+                 buffer_to_hex(digest_mac, ETH_ALEN),
+                 table->entries[idx].bytes_transferred)) {
 #else
-    if (!gzprintf(handle,
-                  "%s %" PRId32 "\n",
-                  buffer_to_hex(table->entries[idx].mac_address, ETH_ALEN),
-                  table->entries[idx].bytes_transferred)) {
+    if (!fprintf(handle,
+                 "%s %" PRId32 "\n",
+                 buffer_to_hex(table->entries[idx].mac_address, ETH_ALEN),
+                 table->entries[idx].bytes_transferred)) {
 #endif
 #ifndef NDEBUG
       perror("Error writing update");
@@ -71,7 +71,7 @@ int device_throughput_table_write_update(device_throughput_table_t* const table,
       return -1;
     }
   }
-  if (!gzprintf(handle, "\n")) {
+  if (!fprintf(handle, "\n")) {
 #ifndef NDEBUG
     perror("Error writing update");
 #endif

@@ -3,7 +3,7 @@
 
 #include <net/ethernet.h>
 #include <stdint.h>
-#include <zlib.h>
+#include <stdio.h>
 
 #include "constants.h"
 
@@ -24,6 +24,6 @@ int device_throughput_table_record(device_throughput_table_t* const table,
                                    const uint32_t bytes_transferred);
 
 int device_throughput_table_write_update(device_throughput_table_t* const table,
-                                         gzFile handle);
+                                         FILE* handle);
 
 #endif

@@ -366,7 +366,7 @@ static void* updater(void* arg) {
 }
 
 static void write_frequent_update() {
-  gzFile handle = gzopen (PENDING_FREQUENT_UPDATE_FILENAME, "wb");
+  FILE* handle = fopen (PENDING_FREQUENT_UPDATE_FILENAME, "w");
   if (!handle) {
 #ifndef NDEBUG
     perror("Could not open update file for writing");
@@ -376,7 +376,7 @@ static void write_frequent_update() {
   if (device_throughput_table_write_update(&device_throughput_table, handle)) {
     exit(1);
   }
-  gzclose(handle);
+  fclose(handle);
 
   char update_filename[FILENAME_MAX];
   snprintf(update_filename,
