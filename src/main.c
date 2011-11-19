@@ -384,7 +384,7 @@ static void write_frequent_update() {
   }
   time_t current_timestamp = time(NULL);
   if (!fprintf(handle,
-               "%s %" PRId64 " %d %" PRId64 "\n",
+               "%s %" PRId64 " %d %" PRId64 "\n\n",
                bismark_id,
                start_timestamp_microseconds,
                frequent_sequence_number,
