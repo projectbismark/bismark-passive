@@ -57,7 +57,7 @@ enum reserved_flow_indices {
 #define UPDATE_PERIOD_SECONDS 30
 #endif
 #ifndef FREQUENT_UPDATE_PERIOD_SECONDS
-#define FREQUENT_UPDATE_PERIOD_SECONDS 5
+#define FREQUENT_UPDATE_PERIOD_SECONDS 15
 #endif
 #define PENDING_UPDATE_FILENAME "/tmp/bismark-passive/current-update.gz"
 #define PENDING_FREQUENT_UPDATE_FILENAME "/tmp/bismark-passive/current-frequent-update"
@@ -83,7 +83,7 @@ enum reserved_flow_indices {
 
 #define DROP_STATISTICS_MAXIMUM_PACKET_SIZE 1500
 
-#define DEVICE_THROUGHPUT_TABLE_SIZE 256
+#define DEVICE_THROUGHPUT_TABLE_SIZE 32
 
 /* Hashtable parameters */
 #define HT_NUM_PROBES 3
