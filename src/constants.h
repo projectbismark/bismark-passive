@@ -16,6 +16,10 @@
  * source and destination IP addresses are written to FLOW_THRESHOLDING_LOG. */
 /*#define DISABLE_FLOW_THRESHOLDING*/
 
+/* Defining this variable enables frequent updates support, with writes
+ * smaller, aggregated updates every 15 seconds. */
+/*#define ENABLE_FREQUENT_UPDATES*/
+
 #define FILE_FORMAT_VERSION 2
 #define FREQUENT_FILE_FORMAT_VERSION 1
 #ifndef BUILD_ID

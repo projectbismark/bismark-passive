@@ -33,7 +33,9 @@
 #ifndef DISABLE_ANONYMIZATION
 #include "anonymization.h"
 #endif
+#ifdef ENABLE_FREQUENT_UPDATES
 #include "device_throughput_table.h"
+#endif
 #include "dns_parser.h"
 #include "dns_table.h"
 #include "drop_statistics.h"
@@ -47,10 +49,14 @@ static dns_table_t dns_table;
 static address_table_t address_table;
 static domain_whitelist_t domain_whitelist;
 static drop_statistics_t drop_statistics;
+#ifdef ENABLE_FREQUENT_UPDATES
 static device_throughput_table_t device_throughput_table;
+#endif
 
 static pthread_t update_thread;
+#ifdef ENABLE_FREQUENT_UPDATES
 static pthread_t frequent_update_thread;
+#endif
 static pthread_mutex_t update_lock;
 
 /* Will be filled in the bismark node ID, from /etc/bismark/ID. */
@@ -63,8 +69,9 @@ static int64_t start_timestamp_microseconds;
 
 /* Will be incremented and sent with each update. */
 static int sequence_number = 0;
-
+#ifdef ENABLE_FREQUENT_UPDATES
 static int frequent_sequence_number = 0;
+#endif
 
 /* This extracts flow information from raw packet contents. */
 static uint16_t get_flow_entry_for_packet(
@@ -77,6 +84,7 @@ static uint16_t get_flow_entry_for_packet(
     int* const dns_bytes_len) {
   const struct ether_header* const eth_header = (struct ether_header*)bytes;
   uint16_t ether_type = ntohs(eth_header->ether_type);
+#ifdef ENABLE_FREQUENT_UPDATES
   if (device_throughput_table_record(&device_throughput_table,
                                      eth_header->ether_shost,
                                      full_length)
@@ -87,6 +95,7 @@ static uint16_t get_flow_entry_for_packet(
     fprintf(stderr, "Error adding to device throughput table\n");
 #endif
   }
+#endif
   if (ether_type == ETHERTYPE_IP) {
     const struct iphdr* ip_header = (struct iphdr*)(bytes + ETHER_HDR_LEN);
     entry->ip_source = ntohl(ip_header->saddr);
@@ -365,6 +374,7 @@ static void* updater(void* arg) {
   }
 }
 
+#ifdef ENABLE_FREQUENT_UPDATES
 static void write_frequent_update() {
   FILE* handle = fopen (PENDING_FREQUENT_UPDATE_FILENAME, "w");
   if (!handle) {
@@ -432,6 +442,7 @@ static void* frequent_updater(void* arg) {
     }
   }
 }
+#endif
 
 static pcap_t* initialize_pcap(const char* const interface) {
   char errbuf[PCAP_ERRBUF_SIZE];
@@ -543,7 +554,9 @@ int main(int argc, char *argv[]) {
   dns_table_init(&dns_table, &domain_whitelist);
   address_table_init(&address_table);
   drop_statistics_init(&drop_statistics);
+#ifdef ENABLE_FREQUENT_UPDATES
   device_throughput_table_init(&device_throughput_table);
+#endif
 
   if (pthread_mutex_init(&update_lock, NULL)) {
     perror("Error initializing mutex");
@@ -551,7 +564,9 @@ int main(int argc, char *argv[]) {
   }
 
   pthread_create(&update_thread, NULL, updater, handle);
+#ifdef ENABLE_FREQUENT_UPDATES
   pthread_create(&frequent_update_thread, NULL, frequent_updater, NULL);
+#endif
 
   /* By default, pcap uses an internal buffer of 500 KB. Any packets that
    * overflow this buffer will be dropped. pcap_stats tells the number of
