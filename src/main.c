@@ -1,6 +1,7 @@
 #include <inttypes.h>
 #include <pcap.h>
 #include <pthread.h>
+#include <signal.h>
 #include <stdio.h>
 /* exit() */
 #include <stdlib.h>
@@ -53,6 +54,7 @@ static drop_statistics_t drop_statistics;
 static device_throughput_table_t device_throughput_table;
 #endif
 
+static pthread_t signal_thread;
 static pthread_t update_thread;
 #ifdef ENABLE_FREQUENT_UPDATES
 static pthread_t frequent_update_thread;
@@ -444,6 +446,18 @@ static void* frequent_updater(void* arg) {
 }
 #endif
 
+static void* handle_signals(void* arg) {
+  sigset_t* signal_set = (sigset_t*)arg;
+  int signal_handled;
+  while (1) {
+    if (sigwait(signal_set, &signal_handled)) {
+      perror("Error handling signal");
+    }
+    printf("Handled signal %d\n", signal_handled);
+  }
+  return NULL;
+}
+
 static pcap_t* initialize_pcap(const char* const interface) {
   char errbuf[PCAP_ERRBUF_SIZE];
   pcap_t* const handle = pcap_open_live(interface, BUFSIZ, 0, 1000, errbuf);
@@ -558,14 +572,32 @@ int main(int argc, char *argv[]) {
   device_throughput_table_init(&device_throughput_table);
 #endif
 
+  sigset_t signal_set;
+  sigemptyset(&signal_set);
+  sigaddset(&signal_set, SIGUSR1);
+  if (pthread_sigmask(SIG_BLOCK, &signal_set, NULL)) {
+    perror("Error calling pthread_sigmask");
+    return 1;
+  }
+  if (pthread_create(&signal_thread, NULL, handle_signals, &signal_set)) {
+    perror("Error creating signal handling thread");
+    return 1;
+  }
+
   if (pthread_mutex_init(&update_lock, NULL)) {
     perror("Error initializing mutex");
     return 1;
   }
 
-  pthread_create(&update_thread, NULL, updater, handle);
+  if (pthread_create(&update_thread, NULL, updater, handle)) {
+    perror("Error creating updates thread");
+    return 1;
+  }
 #ifdef ENABLE_FREQUENT_UPDATES
-  pthread_create(&frequent_update_thread, NULL, frequent_updater, NULL);
+  if (pthread_create(&frequent_update_thread, NULL, frequent_updater, NULL)) {
+    perror("Error creating frequent updates thread");
+    return 1;
+  }
 #endif
 
   /* By default, pcap uses an internal buffer of 500 KB. Any packets that
