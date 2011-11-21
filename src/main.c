@@ -44,6 +44,8 @@
 #include "packet_series.h"
 #include "whitelist.h"
 
+static pcap_t* pcap_handle = NULL;
+
 static packet_series_t packet_data;
 static flow_table_t flow_table;
 static dns_table_t dns_table;
@@ -151,9 +153,8 @@ static void process_packet(
   static int packets_received = 0;
   ++packets_received;
   if (packets_received % 1000 == 0) {
-    pcap_t* const handle = (pcap_t*)user;
     struct pcap_stat statistics;
-    pcap_stats(handle, &statistics);
+    pcap_stats(pcap_handle, &statistics);
     printf("-----\n");
     printf("STATISTICS (printed once for every thousand packets)\n");
     printf("Libpcap has dropped %d packets since process creation\n", statistics.ps_drop);
@@ -232,7 +233,20 @@ static void process_packet(
 
 /* Write an update to UPDATE_FILENAME. This is the file that will be sent to the
  * server. The data is compressed on-the-fly using gzip. */
-static void write_update(const struct pcap_stat* statistics) {
+static void write_update() {
+  struct pcap_stat statistics;
+  int have_pcap_statistics;
+  if (pcap_handle) {
+    have_pcap_statistics = !pcap_stats(pcap_handle, &statistics);
+#ifndef NDEBUG
+    if (!have_pcap_statistics) {
+      pcap_perror(pcap_handle, "Error fetching pcap statistics");
+    }
+#endif
+  } else {
+    have_pcap_statistics = 0;
+  }
+
 #ifndef DISABLE_FLOW_THRESHOLDING
   if (flow_table_write_thresholded_ips(&flow_table,
                                        start_timestamp_microseconds,
@@ -278,12 +292,12 @@ static void write_update(const struct pcap_stat* statistics) {
 #endif
     exit(1);
   }
-  if (statistics) {
+  if (have_pcap_statistics) {
     if (!gzprintf(handle,
                   "%u %u %u\n",
-                  statistics->ps_recv,
-                  statistics->ps_drop,
-                  statistics->ps_ifdrop)) {
+                  statistics.ps_recv,
+                  statistics.ps_drop,
+                  statistics.ps_ifdrop)) {
 #ifndef NDEBUG
       perror("Error writing update");
 #endif
@@ -343,6 +357,8 @@ static void write_update(const struct pcap_stat* statistics) {
     exit(1);
   }
 
+  ++sequence_number;
+
   packet_series_init(&packet_data);
   flow_table_advance_base_timestamp(&flow_table, current_timestamp);
   dns_table_destroy(&dns_table);
@@ -351,24 +367,13 @@ static void write_update(const struct pcap_stat* statistics) {
 }
 
 static void* updater(void* arg) {
-  pcap_t* const handle = (pcap_t*)arg;
   while (1) {
-    sleep (UPDATE_PERIOD_SECONDS);
-
+    sleep(UPDATE_PERIOD_SECONDS);
     if (pthread_mutex_lock(&update_lock)) {
       perror("Error acquiring mutex for update");
       exit(1);
     }
-    struct pcap_stat statistics;
-    if (!pcap_stats(handle, &statistics)) {
-      write_update(&statistics);
-    } else {
-#ifndef NDEBUG
-      pcap_perror(handle, "Error fetching pcap statistics");
-#endif
-      write_update(NULL);
-    }
-    ++sequence_number;
+    write_update();
     if (pthread_mutex_unlock(&update_lock)) {
       perror("Error unlocking update mutex");
       exit(1);
@@ -425,19 +430,20 @@ static void write_frequent_update() {
     exit(1);
   }
 
+  ++frequent_sequence_number;
+
   device_throughput_table_init(&device_throughput_table);
 }
 
 static void* frequent_updater(void* arg) {
   while (1) {
-    sleep (FREQUENT_UPDATE_PERIOD_SECONDS);
+    sleep(FREQUENT_UPDATE_PERIOD_SECONDS);
 
     if (pthread_mutex_lock(&update_lock)) {
       perror("Error acquiring mutex for update");
       exit(1);
     }
     write_frequent_update();
-    ++frequent_sequence_number;
     if (pthread_mutex_unlock(&update_lock)) {
       perror("Error unlocking update mutex");
       exit(1);
@@ -452,10 +458,18 @@ static void* handle_signals(void* arg) {
   while (1) {
     if (sigwait(signal_set, &signal_handled)) {
       perror("Error handling signal");
+      continue;
     }
-    printf("Handled signal %d\n", signal_handled);
+    if (pthread_mutex_lock(&update_lock)) {
+      perror("Error acquiring mutex for update");
+      exit(1);
+    }
+    write_update();
+#ifdef ENABLE_FREQUENT_UPDATES
+    write_frequent_update();
+#endif
+    exit(0);
   }
-  return NULL;
 }
 
 static pcap_t* initialize_pcap(const char* const interface) {
@@ -473,7 +487,7 @@ static pcap_t* initialize_pcap(const char* const interface) {
   return handle;
 }
 
-static int init_bismark_id() {
+static int initialize_bismark_id() {
   FILE* handle = fopen(BISMARK_ID_FILENAME, "r");
   if (!handle) {
     perror("Cannot open Bismark ID file " BISMARK_ID_FILENAME);
@@ -487,7 +501,7 @@ static int init_bismark_id() {
   return 0;
 }
 
-static int init_domain_whitelist() {
+static int initialize_domain_whitelist() {
   domain_whitelist_init(&domain_whitelist);
 
   FILE* handle = fopen(DOMAIN_WHITELIST_FILENAME, "r");
@@ -544,16 +558,11 @@ int main(int argc, char *argv[]) {
   start_timestamp_microseconds
       = start_timeval.tv_sec * NUM_MICROS_PER_SECOND + start_timeval.tv_usec;
 
-  if (init_bismark_id()) {
+  if (initialize_bismark_id()) {
     return 1;
   }
 
-  pcap_t* handle = initialize_pcap(argv[1]);
-  if (!handle) {
-    return 1;
-  }
-
-  if (init_domain_whitelist()) {
+  if (initialize_domain_whitelist()) {
     fprintf(stderr, "Error loading domain whitelist; whitelisting disabled.\n");
   }
 
@@ -572,9 +581,14 @@ int main(int argc, char *argv[]) {
   device_throughput_table_init(&device_throughput_table);
 #endif
 
+  if (pthread_mutex_init(&update_lock, NULL)) {
+    perror("Error initializing mutex");
+    return 1;
+  }
   sigset_t signal_set;
   sigemptyset(&signal_set);
-  sigaddset(&signal_set, SIGUSR1);
+  sigaddset(&signal_set, SIGINT);
+  sigaddset(&signal_set, SIGTERM);
   if (pthread_sigmask(SIG_BLOCK, &signal_set, NULL)) {
     perror("Error calling pthread_sigmask");
     return 1;
@@ -583,13 +597,7 @@ int main(int argc, char *argv[]) {
     perror("Error creating signal handling thread");
     return 1;
   }
-
-  if (pthread_mutex_init(&update_lock, NULL)) {
-    perror("Error initializing mutex");
-    return 1;
-  }
-
-  if (pthread_create(&update_thread, NULL, updater, handle)) {
+  if (pthread_create(&update_thread, NULL, updater, NULL)) {
     perror("Error creating updates thread");
     return 1;
   }
@@ -607,5 +615,9 @@ int main(int argc, char *argv[]) {
    * Because pcap does its own buffering, we don't need to run packet
    * processing in a separate thread. (It would be easier to just increase
    * the buffer size if we experience performance problems.) */
-  return pcap_loop(handle, -1, process_packet, (u_char *)handle);
+  pcap_handle = initialize_pcap(argv[1]);
+  if (!pcap_handle) {
+    return 1;
+  }
+  return pcap_loop(pcap_handle, -1, process_packet, NULL);
 }
