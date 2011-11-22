@@ -501,24 +501,20 @@ static int initialize_bismark_id() {
   return 0;
 }
 
-static int initialize_domain_whitelist() {
+static int initialize_domain_whitelist(const char* const filename) {
   domain_whitelist_init(&domain_whitelist);
 
-  FILE* handle = fopen(DOMAIN_WHITELIST_FILENAME, "r");
+  FILE* handle = fopen(filename, "r");
   if (!handle) {
-    fprintf(stderr, "Using default domain whitelist\n");
-    handle = fopen(DEFAULT_DOMAIN_WHITELIST_FILENAME, "r");
-    if (!handle) {
-      perror("Cannot open domain whitelist " DEFAULT_DOMAIN_WHITELIST_FILENAME);
-      return -1;
-    }
+    perror("Cannot open domain whitelist");
+    return -1;
   }
 
   int length;
   if (fseek(handle, 0, SEEK_END) == -1
       || ((length = ftell(handle)) == -1)
       || fseek(handle, 0, SEEK_SET) == -1) {
-    perror("Cannot read domain whitelist " DOMAIN_WHITELIST_FILENAME);
+    perror("Cannot read domain whitelist");
     fclose(handle);
     return -1;
   }
@@ -530,7 +526,7 @@ static int initialize_domain_whitelist() {
     return -1;
   }
   if (fread(contents, length, 1, handle) != 1) {
-    perror("Cannot read domain whitelist " DOMAIN_WHITELIST_FILENAME);
+    perror("Cannot read domain whitelist");
     free(contents);
     fclose(handle);
     return -1;
@@ -548,8 +544,8 @@ static int initialize_domain_whitelist() {
 }
 
 int main(int argc, char *argv[]) {
-  if (argc != 2) {
-    fprintf(stderr, "Usage: %s <interface>\n", argv[0]);
+  if (argc < 2) {
+    fprintf(stderr, "Usage: %s <interface> [whitelist]\n", argv[0]);
     return 1;
   }
 
@@ -562,7 +558,7 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  if (initialize_domain_whitelist()) {
+  if (argc < 3 || initialize_domain_whitelist(argv[2])) {
     fprintf(stderr, "Error loading domain whitelist; whitelisting disabled.\n");
   }
 
