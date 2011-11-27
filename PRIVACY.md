@@ -67,16 +67,16 @@ Examples
 --------
 
 - Suppose you watch a YouTube video on your laptop computer. BISmark-Passive
-  will record the fact that your visited YouTube, the amount of data of
-  transferred from YouTube to your computer, and the manufacturer of your
-  laptop's network card. BISmark-Passive will not record the name or contents of
-  the video you watched, your YouTube username or password or any cookies or
-  other data associated with YouTube.
-- Suppose you visit a domain not on the list of popular domains.
-  BISmark-Passive will not record the domain you visited. It will only record
-  the broad category of service you accessed on this domain (e.g., Web, e-mail,
-  instant messaging, etc.) and the size and timestamp of the packets sent to the
-  domain.
+  will not record the name or contents of the video you watched, your YouTube
+  username or password or any cookies or other data associated with YouTube.
+  Because YouTube is on the list of popular sites, BISmark-Passive will record
+  the fact that you visited YouTube; it will also record the amount of data of
+  transferred between YouTube and your laptop, and the manufacturer of your
+  laptop's network card.
+- Suppose you remove YouTube from the list of popular sites. BISmark-Passive
+  will now not record the fact that you visited YouTube. It will only record the
+  broad category of service you accessed on YouTube (e.g., Web browsing) and the
+  size and timestamp of the packets sent to YouTube.
 
 Information disclosure
 ----------------------
