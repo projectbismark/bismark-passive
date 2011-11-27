@@ -63,6 +63,21 @@ Information we do not collect
   Internet login credentials, or anything else about your activities online
   except as described above.
 
+Examples
+--------
+
+- Suppose you watch a YouTube video on your laptop computer. BISmark-Passive
+  will record the fact that your visited YouTube, the amount of data of
+  transferred from YouTube to your computer, and the manufacturer of your
+  laptop's network card. BISmark-Passive will not record the name or contents of
+  the video you watched, your YouTube username or password or any cookies or
+  other data associated with YouTube.
+- Suppose you visit a domain not on the list of popular domains.
+  BISmark-Passive will not record the domain you visited. It will only record
+  the broad category of service you accessed on this domain (e.g., Web, e-mail,
+  instant messaging, etc.) and the size and timestamp of the packets sent to the
+  domain.
+
 Information disclosure
 ----------------------
 
