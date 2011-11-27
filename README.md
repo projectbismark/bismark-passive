@@ -6,6 +6,9 @@ periodically sends small anonymized updates to a central server for analysis.
 Doing so will enable researchers to better understand how people use home
 networks.
 
+See the file `PRIVACY` for a detailed explanation of the information collected
+by BISmark Passive and how we will use that information.
+
 Installation instructions
 -------------------------
 
