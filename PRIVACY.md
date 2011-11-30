@@ -6,11 +6,11 @@ BISmark-Passive Priacy Statement
 Summary
 -------
 
-BISmark-Passive collects specific, limited information about how and when
-devices on your home network access services and domains on the Internet.
-BISmark-Passive only collects the names and frequency of access to popular
-Internet sites and services. **BISmark-Passive never records the contents of
-your application sessions or any Personally Identifiable Information.**
+BISmark-Passive collects limited information about how and when devices on your
+home network access the Internet. Specifically, it only collects the names and
+frequency of access to popular Internet sites and services. **BISmark-Passive
+never records the contents of your application sessions or any Personally
+Identifiable Information.**
 
 Full Statement
 --------------
@@ -33,16 +33,18 @@ that accesses the Internet using your BISmark router:
   devices, e.g., an iPad vs a desktop computer.
 - We count **the number of times your devices communicate with popular Internet
   domains.** If desired, you can customize the list of destinations we monitor
-  or completely disable this type of collection. We use this information to
+  or completely disable this type of collection. We collect this information to
   understand the frequency with which people access popular Internet sites.
 - We record **the names of network applications your devices use, and the
   frequency with which your devices use these applications.** Examples of
-  network applications are Web browsing, e-mail, instant messaging, and video
-  chat. This information will help us understand the types of applications
-  people most commonly use from their home network.
-- We collect **anonymous traffic statistics.** We collect the size and timestamp
-  of every packet sent through your BISmark router. We collect this information
-  to better understand what "average" traffic looks like.
+  network applications are Web browsing, e-mail, instant messaging, and Skype.
+  This information will help us understand the types of applications people most
+  commonly use from their home network.
+- We collect **anonymous network traffic statistics.** Network devices
+  communicate by exchanging small units of information called *packets*;
+  BISmark-passive records the size and current clock time of every packet sent
+  through your BISmark router. We collect this information to better understand
+  what "average" traffic looks like.
 
 Although we believe it is unlikely, information collected by BISmark-Passive
 could potentially be used to identify you in certain circumstances. You must
@@ -58,10 +60,10 @@ Information we do not collect
 - **We do not record Personally Identifiable Information (PII).** We do not
   record your name, e-mail address, financial information, mailing address,
   birth date, or MAC or IP addresses except as described above.
-- **We do not record packet contents.** We do not monitor the contents of
-  e-mails, chat conversations, phone calls, file downloads, Web page contents,
-  Internet login credentials, or anything else about your activities online
-  except as described above.
+- **We do not record application packet contents.** We do not monitor the
+  contents of e-mails, chat conversations, phone calls, file downloads, Web page
+  contents, Internet login credentials, or anything else about your activities
+  online except as described above.
 
 BISmark-Passive does not install software on any of your network devices aside
 from your BISmark router.
