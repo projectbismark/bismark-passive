@@ -11,7 +11,7 @@ home network access the Internet. Specifically, it collects information about
 the devices connected to your home network, the type and amount of network
 traffic transferred by these devices, the domain names of popular Internet sites
 accessed by these devices, and the frequency of such access.  **BISmark-Passive
-never inspects or captures the contents of your network traffic.**
+never inspects or captures the application-level contents of your network traffic.**
 
 Full Statement
 --------------
