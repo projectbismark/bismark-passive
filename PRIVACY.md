@@ -77,23 +77,34 @@ Information we do not collect
 BISmark-Passive is installed on your BISmark router and does not affect or
 install software on any of your personal network devices.
 
-Examples
---------
+Examples of information collected by BISmark-Passive
+----------------------------------------------------
 
-- Suppose you watch a YouTube video on your laptop while it is *not* connected
-  to your BISmark router. BISmark-Passive will not record any information in
-  this case, since it only monitors activity through your BISmark router.
-- Suppose you watch a YouTube video on your laptop while it is connected to your
-  BISmark router. YouTube is on the list of popular sites, so BISmark-Passive
-  will record the fact that you visited YouTube; it will also record the amount
-  of data of transferred between YouTube and your laptop, and the manufacturer
-  of your laptop's network card. BISmark-Passive *will not* record the name or
-  contents of the video you watched, your YouTube username or password or any
-  cookies or other data associated with YouTube.
-- Suppose you remove YouTube from the list of popular sites. Now BISmark-Passive
-  will not record the fact that you visited YouTube. It will only record the
-  broad category of service you accessed (e.g., Web browsing) and the size and
-  timestamp of the packets sent to and from YouTube.
+The following examples illustrate the types of information collected in
+different BISmark-Passive usage scenarios related to watching a video on
+YouTube:
+
+- **Watching a YouTube video on your laptop while it is *not* connected to your
+  BISmark router.** BISmark-Passive will not record any information in this case
+  because it only monitors network activity through your BISmark router.
+- **Watching a YouTube video on your laptop while it is connected to your
+  BISmark router.** BISmark-Passive will record:
+    - the fact that you visited youtube.com, because YouTube is on the list of
+      popular sites,
+    - the amount of data of transferred to and from your laptop, including the
+      size and timestamp of each packet transferred,
+    - the fact that the data transferred to and from your your laptop occured
+      via a Web browser (TCP ports 53, 80, and 443), and
+    - the manufacturer of your laptop's network card.
+- **Watching a YouTube video on your laptop after removing youtube.com from the
+  list of popular sites.** Now BISmark-Passive will not record the fact that you
+  visited YouTube. BISmark-passive will still record other general information
+  about this activity:
+    - the amount of data of transferred to and from your laptop, including the
+      size and timestamp of each packet transferred,
+    - the fact that the data transferred to and from your your laptop occured
+      via a Web browser (TCP ports 53, 80, and 443), and
+    - the manufacturer of your laptop's network card.
 
 Information disclosure
 ----------------------
