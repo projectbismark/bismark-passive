@@ -1,5 +1,5 @@
-BISmark-Passive Priacy Statement
-================================
+BISmark-Passive Privacy Statement
+=================================
 
 (This is still a draft.)
 
@@ -7,10 +7,11 @@ Summary
 -------
 
 BISmark-Passive collects limited information about how and when devices on your
-home network access the Internet. Specifically, it only collects the names and
-frequency of access to popular Internet sites and services. **BISmark-Passive
-never records the contents of your application sessions or any Personally
-Identifiable Information.**
+home network access the Internet. Specifically, it collects information about
+the devices connected to your home network, the type and amount of network
+traffic transferred by these devices, the domain names of popular Internet sites
+accessed by these devices, and the frequency of such access.  **BISmark-Passive
+never inspects or captures the contents of your network traffic.**
 
 Full Statement
 --------------
@@ -22,29 +23,34 @@ collecting or storing the information, or the disclosure of this information as
 described below. You must assess and accept the risks of participating in
 BISmark-Passive before you agree to participate in the BISmark-Passive study.
 
-Information we collect
-----------------------
+Information we collect, and why we collect it
+---------------------------------------------
 
 BISmark-Passive collects the following types of information about every device
 that accesses the Internet using your BISmark router:
 
-- We record the **manufacturer of each network device that accesses the Internet
-  using your BISmark router.** We use this to differentiate between classes of
-  devices, e.g., an iPad vs a desktop computer.
-- We count **the number of times your devices communicate with popular Internet
-  domains.** If desired, you can customize the list of destinations we monitor
-  or completely disable this type of collection. We collect this information to
-  understand the frequency with which people access popular Internet sites.
-- We record **the names of network applications your devices use, and the
-  frequency with which your devices use these applications.** Examples of
-  network applications are Web browsing, e-mail, instant messaging, and Skype.
-  This information will help us understand the types of applications people most
-  commonly use from their home network.
-- We collect **anonymous network traffic statistics.** Network devices
-  communicate by exchanging small units of information called *packets*;
-  BISmark-passive records the size and current clock time of every packet sent
-  through your BISmark router. We collect this information to better understand
-  what "average" traffic looks like.
+- BISmark-Passive records the manufacturer of each network device that accesses
+  the Internet using your BISmark router by recording the first 3 bytes of each
+  device's hardware identifier (MAC address). We use this information to
+  differentiate between classes of devices (e.g. a video game console vs. a
+  desktop computer).
+- BISmark-Passive counts the number of times your devices communicate with
+  popular Internet domains. We collect this information to understand the
+  frequency with which people access popular Internet sites. The set of domains
+  that are monitored is based on the Alexa "Top Sites" list
+  (http://www.alexa.com/topsites), and you can alter this list of monitored
+  domains, or completely disable this collection activity.
+- BISmark-Passive records the types of network applications your devices use,
+  and how frequently each application is used, by recording the quantity of
+  network traffic associated with each TCP or UDP port number. We collect this
+  information to understand the types of applications people commonly use from
+  their home network. Examples of network applications include Web browsing,
+  e-mail, instant messaging, and Skype.
+- BISmark-Passive collects information about the distribution of network traffic
+  by recording the size of each unit of information (packet) transmitted through
+  your BISmark router, as well as the date and time at which the transmission
+  occured. We collect this information to understand what an "average" home
+  network traffic distribution looks like.
 
 Although we believe it is unlikely, information collected by BISmark-Passive
 could potentially be used to identify you in certain circumstances. You must
@@ -54,37 +60,51 @@ to participate in the study.
 Information we do not collect
 -----------------------------
 
-- **We do not record URLs.** For popular Web sites, we only record the name of
-  the Web site. For example, if you watch a video on YouTube, we will record the
-  fact that you visited YouTube, but nothing about the video you watched.
-- **We do not record Personally Identifiable Information (PII).** We do not
-  record your name, e-mail address, financial information, mailing address,
-  birth date, or MAC or IP addresses except as described above.
-- **We do not record application packet contents.** We do not monitor the
-  contents of e-mails, chat conversations, phone calls, file downloads, Web page
-  contents, Internet login credentials, or anything else about your activities
-  online except as described above.
+- **BISmark-Passive does not record URLs.** For popular Web sites, we only
+  record the domain name of the Web site. For example, if you watch a video on
+  YouTube, we will record the fact that you visited www.youtube.com, but not the
+  specific URL of the video, which would indicate the video you watched.
+- **BISmark-Passive does not record Personally Identifiable Information (PII).**
+  We do not record your name, e-mail address, mailing address, MAC addresses or
+  IP addresses except as described above and in the BISmark Privacy Statement.
+  We never request or record financial information, social security numbers,
+  birth dates, etc.
+- **BISmark-Passive does not record application packet contents.** We do not
+  monitor the contents of e-mails, chat conversations, phone calls, file
+  downloads, Web page contents, Internet login credentials, or anything else
+  about your online activities except as described above.
 
-BISmark-Passive does not install software on any of your network devices aside
-from your BISmark router.
+BISmark-Passive is installed on your BISmark router and does not affect or
+install software on any of your personal network devices.
 
-Examples
---------
+Examples of information collected by BISmark-Passive
+----------------------------------------------------
 
-- Suppose you watch a YouTube video on your laptop while it is *not* connected
-  to your BISmark router. BISmark-Passive will not record any information in
-  this case, since it only monitors activity through your BISmark router.
-- Suppose you watch a YouTube video on your laptop while it is connected to your
-  BISmark router. YouTube is on the list of popular sites, so BISmark-Passive
-  will record the fact that you visited YouTube; it will also record the amount
-  of data of transferred between YouTube and your laptop, and the manufacturer
-  of your laptop's network card. BISmark-Passive *will not* record the name or
-  contents of the video you watched, your YouTube username or password or any
-  cookies or other data associated with YouTube.
-- Suppose you remove YouTube from the list of popular sites. Now BISmark-Passive
-  will not record the fact that you visited YouTube. It will only record the
-  broad category of service you accessed (e.g., Web browsing) and the size and
-  timestamp of the packets sent to and from YouTube.
+The following examples illustrate the types of information collected in
+different BISmark-Passive usage scenarios related to watching a video on
+YouTube:
+
+- **Watching a YouTube video on your laptop while it is *not* connected to your
+  BISmark router.** BISmark-Passive will not record any information in this case
+  because it only monitors network activity through your BISmark router.
+- **Watching a YouTube video on your laptop while it is connected to your
+  BISmark router.** BISmark-Passive will record:
+    - the fact that you visited youtube.com, because YouTube is on the list of
+      popular sites,
+    - the amount of data of transferred to and from your laptop, including the
+      size and timestamp of each packet transferred,
+    - the fact that the data transferred to and from your your laptop occured
+      via a Web browser (TCP ports 53, 80, and 443), and
+    - the manufacturer of your laptop's network card.
+- **Watching a YouTube video on your laptop after removing youtube.com from the
+  list of popular sites.** Now BISmark-Passive will not record the fact that you
+  visited YouTube. BISmark-passive will still record other general information
+  about this activity:
+    - the amount of data of transferred to and from your laptop, including the
+      size and timestamp of each packet transferred,
+    - the fact that the data transferred to and from your your laptop occured
+      via a Web browser (TCP ports 53, 80, and 443), and
+    - the manufacturer of your laptop's network card.
 
 Information disclosure
 ----------------------
@@ -95,7 +115,8 @@ BISmark-Passive team in the following ways:
 - The BISmark-Passive team will utilize the collected data to produce scholarly
   works such as articles, reports, and presentations that will be published and
   publicly accessible. These results will typically contain aggregated and
-  derivative information, but may contain raw information, excluding PII.
+  derivative information, but may contain raw information, excluding PII as
+  noted in the BISmark Privacy Statement.
 - Any information collected as part of BISmark-Passive may potentially be
   disclosed in response to a lawful request by law enforcement or other legal
   processes or authorities.
