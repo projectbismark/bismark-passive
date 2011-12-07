@@ -22,6 +22,7 @@ LDFLAGS += -lpcap -lresolv -pthread -lz -lssl -lcrypto
 SRCS = \
 	src/address_table.c \
 	src/anonymization.c \
+	src/device_throughput_table.c \
 	src/dns_parser.c \
 	src/dns_table.c \
 	src/drop_statistics.c \
