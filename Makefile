@@ -18,7 +18,7 @@ endif
 ifdef UPDATE_INTERVAL
 CFLAGS += -DUPDATE_PERIOD_SECONDS="$(UPDATE_INTERVAL)"
 endif
-LDFLAGS += -lpcap -lresolv -pthread -lz -lssl -lcrypto -static
+LDFLAGS += -lpcap -lresolv -pthread -lz -lssl -lcrypto
 SRCS = \
 	src/address_table.c \
 	src/anonymization.c \
