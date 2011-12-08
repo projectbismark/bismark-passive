@@ -23,6 +23,26 @@ collecting or storing the information, or the disclosure of this information as
 described below. You must assess and accept the risks of participating in
 BISmark-Passive before you agree to participate in the BISmark-Passive study.
 
+Information we **do not** collect
+---------------------------------
+
+- **BISmark-Passive does not record URLs.** For popular Web sites, we only
+  record the domain name of the Web site. For example, if you watch a video on
+  YouTube, we will record the fact that you visited www.youtube.com, but not the
+  specific URL of the video, which would indicate the video you watched.
+- **BISmark-Passive does not record Personally Identifiable Information (PII).**
+  We do not record your name, e-mail address, mailing address, MAC addresses or
+  IP addresses except as described above and in the BISmark Privacy Statement.
+  We never request or record financial information, social security numbers,
+  birth dates, etc.
+- **BISmark-Passive does not record application packet contents.** We do not
+  monitor the contents of e-mails, chat conversations, phone calls, file
+  downloads, Web page contents, Internet login credentials, or anything else
+  about your online activities except as described above.
+
+BISmark-Passive is installed on your BISmark router and does not affect or
+install software on any of your personal network devices.
+
 Information we collect, and why we collect it
 ---------------------------------------------
 
@@ -35,9 +55,11 @@ that accesses the Internet using your BISmark router:
   differentiate between classes of devices (e.g. a video game console vs. a
   desktop computer).
 - BISmark-Passive counts the number of times your devices communicate with
-  popular Internet domains. We collect this information to understand the
-  frequency with which people access popular Internet sites. The set of domains
-  that are monitored is based on the Alexa "Top Sites" list
+  popular Internet domains and subdomains. For example, if you visit
+  http://maps.google.com, we will record `maps.google.com`, because
+  `google.com` is on the list of popular domains. We collect this information to
+  understand the frequency with which people access popular Internet sites. The
+  set of domains that are monitored is based on the Alexa "Top Sites" list
   (http://www.alexa.com/topsites), and you can alter this list of monitored
   domains, or completely disable this collection activity.
 - BISmark-Passive records the types of network applications your devices use,
@@ -56,26 +78,6 @@ Although we believe it is unlikely, information collected by BISmark-Passive
 could potentially be used to identify you in certain circumstances. You must
 assess and accept the risks of participating in BISmark-Passive before you agree
 to participate in the study.
-
-Information we do not collect
------------------------------
-
-- **BISmark-Passive does not record URLs.** For popular Web sites, we only
-  record the domain name of the Web site. For example, if you watch a video on
-  YouTube, we will record the fact that you visited www.youtube.com, but not the
-  specific URL of the video, which would indicate the video you watched.
-- **BISmark-Passive does not record Personally Identifiable Information (PII).**
-  We do not record your name, e-mail address, mailing address, MAC addresses or
-  IP addresses except as described above and in the BISmark Privacy Statement.
-  We never request or record financial information, social security numbers,
-  birth dates, etc.
-- **BISmark-Passive does not record application packet contents.** We do not
-  monitor the contents of e-mails, chat conversations, phone calls, file
-  downloads, Web page contents, Internet login credentials, or anything else
-  about your online activities except as described above.
-
-BISmark-Passive is installed on your BISmark router and does not affect or
-install software on any of your personal network devices.
 
 Examples of information collected by BISmark-Passive
 ----------------------------------------------------
@@ -105,6 +107,11 @@ YouTube:
     - the fact that the data transferred to and from your your laptop occured
       via a Web browser (TCP ports 53, 80, and 443), and
     - the manufacturer of your laptop's network card.
+- **Visiting a subdomain of a popular site.** Suppose you read a blog post at
+  http://yourfriendsblog.blogspot.com/posts/my-first-post. If you haven't
+  removed Blogspot from the list of popular sites then BISmark-Passive will
+  record the fact that you visited `yourfriendsblog.blogspot.com` (not just
+  `blogspot.com` and not the full URL.)
 
 Information disclosure
 ----------------------
