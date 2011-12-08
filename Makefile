@@ -18,6 +18,9 @@ endif
 ifdef UPDATE_INTERVAL
 CFLAGS += -DUPDATE_PERIOD_SECONDS="$(UPDATE_INTERVAL)"
 endif
+ifdef FREQUENT_UPDATES
+CFLAGS += -DENABLE_FREQUENT_UPDATES
+endif
 LDFLAGS += -lpcap -lresolv -pthread -lz -lssl -lcrypto
 SRCS = \
 	src/address_table.c \
