@@ -391,9 +391,8 @@ static void write_frequent_update() {
     exit(1);
   }
   if (!fprintf(handle,
-               "%d\n%s\n",
-               FREQUENT_FILE_FORMAT_VERSION,
-               BUILD_ID) < 0) {
+               "%d\n",
+               FREQUENT_FILE_FORMAT_VERSION) < 0) {
 #ifndef NDEBUG
     perror("Error writing update");
 #endif
@@ -401,16 +400,26 @@ static void write_frequent_update() {
   }
   time_t current_timestamp = time(NULL);
   if (!fprintf(handle,
-               "%s %" PRId64 " %d %" PRId64 "\n\n",
-               bismark_id,
-               start_timestamp_microseconds,
-               frequent_sequence_number,
+               "%s %" PRId64 "\n\n",
+               BUILD_ID,
                (int64_t)current_timestamp) < 0) {
 #ifndef NDEBUG
     perror("Error writing update");
 #endif
     exit(1);
   }
+#ifndef DISABLE_ANONYMIZATION
+  if (anonymization_write_update(handle)) {
+    exit(1);
+  }
+#else
+  if (!gzprintf(handle, "UNANONYMIZED\n\n")) {
+#ifndef NDEBUG
+    perror("Error writing update");
+#endif
+    exit(1);
+  }
+#endif
   if (device_throughput_table_write_update(&device_throughput_table, handle)) {
     exit(1);
   }
