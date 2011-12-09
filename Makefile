@@ -21,7 +21,7 @@ endif
 ifdef FREQUENT_UPDATES
 CFLAGS += -DENABLE_FREQUENT_UPDATES
 endif
-LDFLAGS += -lpcap -lresolv -pthread -lz -lssl -lcrypto
+LDFLAGS += -lpcap -lresolv -pthread -lz
 SRCS = \
 	src/address_table.c \
 	src/anonymization.c \
@@ -32,6 +32,7 @@ SRCS = \
 	src/flow_table.c \
 	src/main.c \
 	src/packet_series.c \
+	src/sha1.c \
 	src/util.c \
 	src/whitelist.c
 OBJS = $(SRCS:.c=.o)

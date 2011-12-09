@@ -1,4 +1,5 @@
 #include "dns_parser.h"
+#include "device_throughput_table.h"
 #include "dns_table.h"
 #include "flow_table.h"
 #include "address_table.h"
@@ -670,6 +671,18 @@ START_TEST(test_whitelist_can_lookup) {
   fail_unless(domain_whitelist_lookup(&whitelist, "ar.org"));
 
   domain_whitelist_destroy(&whitelist);
+}
+END_TEST
+
+/********************************************************
+ * Device throughput table
+ ********************************************************/
+
+device_throughput_table_t device_throughput_table;
+
+START_TEST(test_device_throughput_table) {
+  device_throughput_table_init(&device_throughput_table);
+
 }
 END_TEST
 
