@@ -62,7 +62,7 @@ enum reserved_flow_indices {
 #define UPDATE_PERIOD_SECONDS 30
 #endif
 #ifndef FREQUENT_UPDATE_PERIOD_SECONDS
-#define FREQUENT_UPDATE_PERIOD_SECONDS 15
+#define FREQUENT_UPDATE_PERIOD_SECONDS 5
 #endif
 #define PENDING_UPDATE_FILENAME "/tmp/bismark-passive/current-update.gz"
 #define PENDING_FREQUENT_UPDATE_FILENAME "/tmp/bismark-passive/current-frequent-update"

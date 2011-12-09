@@ -375,43 +375,32 @@ static void write_update() {
 
 #ifdef ENABLE_FREQUENT_UPDATES
 static void write_frequent_update() {
-  FILE* handle = fopen (PENDING_FREQUENT_UPDATE_FILENAME, "w");
+#ifndef NDEBUG
+  printf("Writing frequent log to %s\n", PENDING_FREQUENT_UPDATE_FILENAME);
+#endif
+  FILE* handle = fopen(PENDING_FREQUENT_UPDATE_FILENAME, "w");
   if (!handle) {
 #ifndef NDEBUG
     perror("Could not open update file for writing");
 #endif
     exit(1);
   }
-  if (!fprintf(handle,
-               "%d\n",
-               FREQUENT_FILE_FORMAT_VERSION) < 0) {
+  if (fprintf(handle, "%d\n", FREQUENT_FILE_FORMAT_VERSION) < 0) {
 #ifndef NDEBUG
     perror("Error writing update");
 #endif
     exit(1);
   }
   time_t current_timestamp = time(NULL);
-  if (!fprintf(handle,
-               "%s %" PRId64 "\n\n",
-               BUILD_ID,
-               (int64_t)current_timestamp) < 0) {
+  if (fprintf(handle,
+              "%s %" PRId64 "\n\n",
+              BUILD_ID,
+              (int64_t)current_timestamp) < 0) {
 #ifndef NDEBUG
     perror("Error writing update");
 #endif
     exit(1);
   }
-#ifndef DISABLE_ANONYMIZATION
-  if (anonymization_write_update(handle)) {
-    exit(1);
-  }
-#else
-  if (!gzprintf(handle, "UNANONYMIZED\n\n")) {
-#ifndef NDEBUG
-    perror("Error writing update");
-#endif
-    exit(1);
-  }
-#endif
   if (device_throughput_table_write_update(&device_throughput_table, handle)) {
     exit(1);
   }
@@ -464,7 +453,7 @@ static void handle_signals(int sig) {
   }
 }
 
-static int initialize_signal_handler() {
+static void initialize_signal_handler() {
   struct sigaction action;
   action.sa_handler = handle_signals;
   sigemptyset(&action.sa_mask);
@@ -473,13 +462,12 @@ static int initialize_signal_handler() {
       || sigaction(SIGTERM, &action, NULL) < 0
       || sigaction(SIGALRM, &action, NULL)) {
     perror("sigaction");
-    return -1;
+    exit(1);
   }
   sigemptyset(&block_set);
   sigaddset(&block_set, SIGINT);
   sigaddset(&block_set, SIGTERM);
   sigaddset(&block_set, SIGALRM);
-  return 0;
 }
 
 static pcap_t* initialize_pcap(const char* const interface) {
@@ -497,18 +485,17 @@ static pcap_t* initialize_pcap(const char* const interface) {
   return handle;
 }
 
-static int initialize_bismark_id() {
+static void initialize_bismark_id() {
   FILE* handle = fopen(BISMARK_ID_FILENAME, "r");
   if (!handle) {
     perror("Cannot open Bismark ID file " BISMARK_ID_FILENAME);
-    return -1;
+    exit(1);
   }
   if(fscanf(handle, "%255s\n", bismark_id) < 1) {
     perror("Cannot read Bismark ID file " BISMARK_ID_FILENAME);
-    return -1;
+    exit(1);
   }
   fclose(handle);
-  return 0;
 }
 
 static int initialize_domain_whitelist(const char* const filename) {
@@ -564,9 +551,7 @@ int main(int argc, char *argv[]) {
   start_timestamp_microseconds
       = start_timeval.tv_sec * NUM_MICROS_PER_SECOND + start_timeval.tv_usec;
 
-  if (initialize_bismark_id()) {
-    return 1;
-  }
+  initialize_bismark_id();
 
   if (argc < 3 || initialize_domain_whitelist(argv[2])) {
     fprintf(stderr, "Error loading domain whitelist; whitelisting disabled.\n");
@@ -587,9 +572,7 @@ int main(int argc, char *argv[]) {
   device_throughput_table_init(&device_throughput_table);
 #endif
 
-  if (initialize_signal_handler()) {
-    return 1;
-  }
+  initialize_signal_handler();
   set_next_alarm();
 
   /* By default, pcap uses an internal buffer of 500 KB. Any packets that
