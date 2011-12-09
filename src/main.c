@@ -1,6 +1,6 @@
 #include <inttypes.h>
 #include <pcap.h>
-#include <pthread.h>
+/* sigaction, sigprocmask, SIG* */
 #include <signal.h>
 #include <stdio.h>
 /* exit() */
@@ -56,12 +56,8 @@ static drop_statistics_t drop_statistics;
 static device_throughput_table_t device_throughput_table;
 #endif
 
-static pthread_t signal_thread;
-static pthread_t update_thread;
-#ifdef ENABLE_FREQUENT_UPDATES
-static pthread_t frequent_update_thread;
-#endif
-static pthread_mutex_t update_lock;
+/* Set of signals that get blocked while processing a packet. */
+sigset_t block_set;
 
 /* Will be filled in the bismark node ID, from /etc/bismark/ID. */
 static char bismark_id[256];
@@ -75,6 +71,13 @@ static int64_t start_timestamp_microseconds;
 static int sequence_number = 0;
 #ifdef ENABLE_FREQUENT_UPDATES
 static int frequent_sequence_number = 0;
+#endif
+
+static unsigned int alarm_count = 0;
+#ifdef ENABLE_FREQUENT_UPDATES
+#define ALARMS_PER_UPDATE (UPDATE_PERIOD_SECONDS / FREQUENT_UPDATE_PERIOD_SECONDS)
+#else
+#define ALARMS_PER_UPDATE 1
 #endif
 
 /* This extracts flow information from raw packet contents. */
@@ -144,8 +147,10 @@ static void process_packet(
         u_char* const user,
         const struct pcap_pkthdr* const header,
         const u_char* const bytes) {
-  if (pthread_mutex_lock(&update_lock)) {
-    perror("Error locking global mutex");
+  if (sigprocmask(SIG_BLOCK, &block_set, NULL) < 0) {
+#ifndef NDEBUG
+    perror("sigprocmask");
+#endif
     exit(1);
   }
 
@@ -225,8 +230,10 @@ static void process_packet(
     process_dns_packet(dns_bytes, dns_bytes_len, &dns_table, packet_id, mac_id);
   }
 
-  if (pthread_mutex_unlock(&update_lock)) {
-    perror("Error unlocking global mutex");
+  if (sigprocmask(SIG_UNBLOCK, &block_set, NULL) < 0) {
+#ifndef NDEBUG
+    perror("sigprocmask");
+#endif
     exit(1);
   }
 }
@@ -366,21 +373,6 @@ static void write_update() {
   drop_statistics_init(&drop_statistics);
 }
 
-static void* updater(void* arg) {
-  while (1) {
-    sleep(UPDATE_PERIOD_SECONDS);
-    if (pthread_mutex_lock(&update_lock)) {
-      perror("Error acquiring mutex for update");
-      exit(1);
-    }
-    write_update();
-    if (pthread_mutex_unlock(&update_lock)) {
-      perror("Error unlocking update mutex");
-      exit(1);
-    }
-  }
-}
-
 #ifdef ENABLE_FREQUENT_UPDATES
 static void write_frequent_update() {
   FILE* handle = fopen (PENDING_FREQUENT_UPDATE_FILENAME, "w");
@@ -443,42 +435,51 @@ static void write_frequent_update() {
 
   device_throughput_table_init(&device_throughput_table);
 }
-
-static void* frequent_updater(void* arg) {
-  while (1) {
-    sleep(FREQUENT_UPDATE_PERIOD_SECONDS);
-
-    if (pthread_mutex_lock(&update_lock)) {
-      perror("Error acquiring mutex for update");
-      exit(1);
-    }
-    write_frequent_update();
-    if (pthread_mutex_unlock(&update_lock)) {
-      perror("Error unlocking update mutex");
-      exit(1);
-    }
-  }
-}
 #endif
 
-static void* handle_signals(void* arg) {
-  sigset_t* signal_set = (sigset_t*)arg;
-  int signal_handled;
-  while (1) {
-    if (sigwait(signal_set, &signal_handled)) {
-      perror("Error handling signal");
-      continue;
-    }
-    if (pthread_mutex_lock(&update_lock)) {
-      perror("Error acquiring mutex for update");
-      exit(1);
-    }
+static void set_next_alarm() {
+#ifdef ENABLE_FREQUENT_UPDATES
+  alarm(FREQUENT_UPDATE_PERIOD_SECONDS);
+#else
+  alarm(UPDATE_PERIOD_SECONDS);
+#endif
+}
+
+static void handle_signals(int sig) {
+  if (sig == SIGINT || sig == SIGTERM) {
     write_update();
 #ifdef ENABLE_FREQUENT_UPDATES
     write_frequent_update();
 #endif
     exit(0);
+  } else if (sig == SIGALRM) {
+    alarm_count += 1;
+    if (alarm_count % ALARMS_PER_UPDATE == 0) {
+      write_update();
+    }
+#ifdef ENABLE_FREQUENT_UPDATES
+    write_frequent_update();
+#endif
+    set_next_alarm();
   }
+}
+
+static int initialize_signal_handler() {
+  struct sigaction action;
+  action.sa_handler = handle_signals;
+  sigemptyset(&action.sa_mask);
+  action.sa_flags = SA_RESTART;
+  if (sigaction(SIGINT, &action, NULL) < 0
+      || sigaction(SIGTERM, &action, NULL) < 0
+      || sigaction(SIGALRM, &action, NULL)) {
+    perror("sigaction");
+    return -1;
+  }
+  sigemptyset(&block_set);
+  sigaddset(&block_set, SIGINT);
+  sigaddset(&block_set, SIGTERM);
+  sigaddset(&block_set, SIGALRM);
+  return 0;
 }
 
 static pcap_t* initialize_pcap(const char* const interface) {
@@ -586,32 +587,10 @@ int main(int argc, char *argv[]) {
   device_throughput_table_init(&device_throughput_table);
 #endif
 
-  if (pthread_mutex_init(&update_lock, NULL)) {
-    perror("Error initializing mutex");
+  if (initialize_signal_handler()) {
     return 1;
   }
-  sigset_t signal_set;
-  sigemptyset(&signal_set);
-  sigaddset(&signal_set, SIGINT);
-  sigaddset(&signal_set, SIGTERM);
-  if (pthread_sigmask(SIG_BLOCK, &signal_set, NULL)) {
-    perror("Error calling pthread_sigmask");
-    return 1;
-  }
-  if (pthread_create(&signal_thread, NULL, handle_signals, &signal_set)) {
-    perror("Error creating signal handling thread");
-    return 1;
-  }
-  if (pthread_create(&update_thread, NULL, updater, NULL)) {
-    perror("Error creating updates thread");
-    return 1;
-  }
-#ifdef ENABLE_FREQUENT_UPDATES
-  if (pthread_create(&frequent_update_thread, NULL, frequent_updater, NULL)) {
-    perror("Error creating frequent updates thread");
-    return 1;
-  }
-#endif
+  set_next_alarm();
 
   /* By default, pcap uses an internal buffer of 500 KB. Any packets that
    * overflow this buffer will be dropped. pcap_stats tells the number of
