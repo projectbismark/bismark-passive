@@ -54,9 +54,7 @@ int address_table_write_update(address_table_t* const table, gzFile handle) {
                 "%d %d\n",
                 NORM(table->last - table->added_since_last_update + 1),
                 MAC_TABLE_ENTRIES)) {
-#ifndef NDEBUG
     perror("Error writing update");
-#endif
     return -1;
   }
   int idx;
@@ -67,9 +65,7 @@ int address_table_write_update(address_table_t* const table, gzFile handle) {
     uint8_t digest_mac[ETH_ALEN];
     if (anonymize_ip(table->entries[mac_id].ip_address, &digest_ip)
         || anonymize_mac(table->entries[mac_id].mac_address, digest_mac)) {
-#ifndef NDEBUG
       fprintf(stderr, "Error anonymizing MAC mapping\n");
-#endif
       return -1;
     }
     if (!gzprintf(handle,
@@ -82,16 +78,12 @@ int address_table_write_update(address_table_t* const table, gzFile handle) {
                   buffer_to_hex(table->entries[mac_id].mac_address, ETH_ALEN),
                   table->entries[mac_id].ip_address)) {
 #endif
-#ifndef NDEBUG
       perror("Error writing update");
-#endif
       return -1;
     }
   }
   if (!gzprintf(handle, "\n")) {
-#ifndef NDEBUG
     perror("Error writing update");
-#endif
     return -1;
   }
   table->added_since_last_update = 0;

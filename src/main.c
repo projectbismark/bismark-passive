@@ -98,9 +98,7 @@ static uint16_t get_flow_entry_for_packet(
       || device_throughput_table_record(&device_throughput_table,
                                         eth_header->ether_dhost,
                                         full_length)) {
-#ifndef NDEBUG
     fprintf(stderr, "Error adding to device throughput table\n");
-#endif
   }
 #endif
   if (ether_type == ETHERTYPE_IP) {
@@ -130,14 +128,10 @@ static uint16_t get_flow_entry_for_packet(
             &address_table, entry->ip_destination, eth_header->ether_dhost);
       }
     } else {
-#ifndef NDEBUG
       fprintf(stderr, "Unhandled transport protocol: %u\n", ip_header->protocol);
-#endif
     }
   } else {
-#ifndef NDEBUG
     fprintf(stderr, "Unhandled network protocol: %hu\n", ether_type);
-#endif
   }
   return ether_type;
 }
@@ -148,9 +142,7 @@ static void process_packet(
         const struct pcap_pkthdr* const header,
         const u_char* const bytes) {
   if (sigprocmask(SIG_BLOCK, &block_set, NULL) < 0) {
-#ifndef NDEBUG
     perror("sigprocmask");
-#endif
     exit(1);
   }
 
@@ -220,9 +212,7 @@ static void process_packet(
   int packet_id = packet_series_add_packet(
         &packet_data, &header->ts, header->len, flow_id);
   if (packet_id < 0) {
-#ifndef NDEBUG
     fprintf(stderr, "Error adding to packet series\n");
-#endif
     drop_statistics_process_packet(&drop_statistics, header->len);
   }
 
@@ -231,9 +221,7 @@ static void process_packet(
   }
 
   if (sigprocmask(SIG_UNBLOCK, &block_set, NULL) < 0) {
-#ifndef NDEBUG
     perror("sigprocmask");
-#endif
     exit(1);
   }
 }
@@ -245,11 +233,9 @@ static void write_update() {
   int have_pcap_statistics;
   if (pcap_handle) {
     have_pcap_statistics = !pcap_stats(pcap_handle, &statistics);
-#ifndef NDEBUG
     if (!have_pcap_statistics) {
       pcap_perror(pcap_handle, "Error fetching pcap statistics");
     }
-#endif
   } else {
     have_pcap_statistics = 0;
   }
@@ -258,20 +244,14 @@ static void write_update() {
   if (flow_table_write_thresholded_ips(&flow_table,
                                        start_timestamp_microseconds,
                                        sequence_number)) {
-#ifndef NDEBUG
     fprintf(stderr, "Couldn't write thresholded flows log\n");
-#endif
   }
 #endif
 
-#ifndef NDEBUG
   printf("Writing differential log to %s\n", PENDING_UPDATE_FILENAME);
-#endif
   gzFile handle = gzopen (PENDING_UPDATE_FILENAME, "wb");
   if (!handle) {
-#ifndef NDEBUG
     perror("Could not open update file for writing");
-#endif
     exit(1);
   }
 
@@ -283,9 +263,7 @@ static void write_update() {
                 "%d\n%s\n",
                 FILE_FORMAT_VERSION,
                 BUILD_ID)) {
-#ifndef NDEBUG
     perror("Error writing update");
-#endif
     exit(1);
   }
   if (!gzprintf(handle,
@@ -294,9 +272,7 @@ static void write_update() {
                 start_timestamp_microseconds,
                 sequence_number,
                 (int64_t)current_timestamp)) {
-#ifndef NDEBUG
     perror("Error writing update");
-#endif
     exit(1);
   }
   if (have_pcap_statistics) {
@@ -305,16 +281,12 @@ static void write_update() {
                   statistics.ps_recv,
                   statistics.ps_drop,
                   statistics.ps_ifdrop)) {
-#ifndef NDEBUG
       perror("Error writing update");
-#endif
       exit(1);
     }
   }
   if (!gzprintf(handle, "\n")) {
-#ifndef NDEBUG
     perror("Error writing update");
-#endif
     exit(1);
   }
   if (sequence_number == 0) {
@@ -323,9 +295,7 @@ static void write_update() {
     }
   } else {
     if (!gzprintf(handle, "\n")) {
-#ifndef NDEBUG
       perror("Error writing update");
-#endif
       exit(1);
     }
   }
@@ -335,9 +305,7 @@ static void write_update() {
   }
 #else
   if (!gzprintf(handle, "UNANONYMIZED\n\n")) {
-#ifndef NDEBUG
     perror("Error writing update");
-#endif
     exit(1);
   }
 #endif
@@ -358,9 +326,7 @@ static void write_update() {
            start_timestamp_microseconds,
            sequence_number);
   if (rename(PENDING_UPDATE_FILENAME, update_filename)) {
-#ifndef NDEBUG
     perror("Could not stage update");
-#endif
     exit(1);
   }
 
@@ -375,20 +341,14 @@ static void write_update() {
 
 #ifdef ENABLE_FREQUENT_UPDATES
 static void write_frequent_update() {
-#ifndef NDEBUG
   printf("Writing frequent log to %s\n", PENDING_FREQUENT_UPDATE_FILENAME);
-#endif
   FILE* handle = fopen(PENDING_FREQUENT_UPDATE_FILENAME, "w");
   if (!handle) {
-#ifndef NDEBUG
     perror("Could not open update file for writing");
-#endif
     exit(1);
   }
   if (fprintf(handle, "%d\n", FREQUENT_FILE_FORMAT_VERSION) < 0) {
-#ifndef NDEBUG
     perror("Error writing update");
-#endif
     exit(1);
   }
   time_t current_timestamp = time(NULL);
@@ -396,9 +356,7 @@ static void write_frequent_update() {
               "%s %" PRId64 "\n\n",
               BUILD_ID,
               (int64_t)current_timestamp) < 0) {
-#ifndef NDEBUG
     perror("Error writing update");
-#endif
     exit(1);
   }
   if (device_throughput_table_write_update(&device_throughput_table, handle)) {
@@ -414,9 +372,7 @@ static void write_frequent_update() {
            start_timestamp_microseconds,
            frequent_sequence_number);
   if (rename(PENDING_FREQUENT_UPDATE_FILENAME, update_filename)) {
-#ifndef NDEBUG
     perror("Could not stage update");
-#endif
     exit(1);
   }
 

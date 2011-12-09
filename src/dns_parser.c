@@ -30,9 +30,7 @@ static const uint8_t* parse_resource_record(const uint8_t* const bytes,
       record->name,
       sizeof(record->name));
   if (compressed_len < 0) {
-#ifndef NDEBUG
     fprintf(stderr, "Couldn't expand rr_name\n");
-#endif
     return NULL;
   }
 
@@ -40,14 +38,10 @@ static const uint8_t* parse_resource_record(const uint8_t* const bytes,
     = compressed_len + sizeof(record->type) + sizeof(record->class)
     + sizeof(record->ttl) + sizeof(record->rdlength);
   if (offset + rr_header_len > bytes + len) {
-#ifndef NDEBUG
     fprintf(stderr, "Malformed DNS packet: premature end of packet\n");
-#endif
     return NULL;
   }
-#ifndef NDEBUG
   const uint8_t* beginning = offset;
-#endif
 
   offset += compressed_len;
   record->type = ntohs(*(uint16_t*)offset);
@@ -62,9 +56,7 @@ static const uint8_t* parse_resource_record(const uint8_t* const bytes,
   assert(beginning + rr_header_len == offset);  /* Sanity check */
   offset += record->rdlength;
   if (offset > bytes + len) {
-#ifndef NDEBUG
     fprintf(stderr, "Malformed DNS packet: premature end of packet\n");
-#endif
     return NULL;
   }
   return offset;
@@ -106,9 +98,7 @@ static void add_cname_record(dns_table_t* const dns_table,
   entry.ttl = record->ttl;
   char cname[MAXDNAME];
   if (dn_expand(bytes, bytes + len, record->rdata, cname, sizeof(cname)) < 0) {
-#ifndef NDEBUG
     fprintf(stderr, "Couldn't expand cname\n");
-#endif
     return;
   }
   entry.cname = strdup(cname);
@@ -130,9 +120,7 @@ int process_dns_packet(const uint8_t* const bytes,
                        uint8_t mac_id)
 {
   if (len < sizeof(HEADER)) {
-#ifndef NDEBUG
     fprintf(stderr, "DNS packet too short\n");
-#endif
     return -1;
   }
 
@@ -140,9 +128,7 @@ int process_dns_packet(const uint8_t* const bytes,
   if (dns_header->qr != 1 ||
       dns_header->opcode != QUERY ||
       dns_header->rcode != NOERROR) {
-#ifndef NDEBUG
     fprintf(stderr, "Irrelevant DNS response\n");
-#endif
     return -1;
   }
 
@@ -157,9 +143,7 @@ int process_dns_packet(const uint8_t* const bytes,
                                    qname,
                                    sizeof(qname));
     if (compressed_len < 0) {
-#ifndef NDEBUG
       fprintf(stderr, "Couldn't expand qname\n");
-#endif
       return -1;
     }
     offset += compressed_len;
@@ -175,9 +159,7 @@ int process_dns_packet(const uint8_t* const bytes,
     }
 
     if (record.class != C_IN) {
-#ifndef NDEBUG
       fprintf(stderr, "Non-IN DNS record\n");
-#endif
       continue;
     }
 
@@ -206,9 +188,7 @@ int process_dns_packet(const uint8_t* const bytes,
     }
 
     if (record.class != C_IN) {
-#ifndef NDEBUG
       fprintf(stderr, "Non-IN DNS record\n");
-#endif
       continue;
     }
 

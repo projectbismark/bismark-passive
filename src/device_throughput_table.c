@@ -39,9 +39,7 @@ int device_throughput_table_record(device_throughput_table_t* const table,
 int device_throughput_table_write_update(device_throughput_table_t* const table,
                                          FILE* handle) {
   if (fprintf(handle, "%d\n", table->length) < 0) {
-#ifndef NDEBUG
     perror("Error writing update");
-#endif
     return -1;
   }
 
@@ -50,9 +48,7 @@ int device_throughput_table_write_update(device_throughput_table_t* const table,
 #ifndef DISABLE_ANONYMIZATION
     uint8_t digest_mac[ETH_ALEN];
     if (anonymize_mac(table->entries[idx].mac_address, digest_mac)) {
-#ifndef NDEBUG
       fprintf(stderr, "Error anonymizing MAC address\n");
-#endif
       return -1;
     }
     if (fprintf(handle,
@@ -65,16 +61,12 @@ int device_throughput_table_write_update(device_throughput_table_t* const table,
                 buffer_to_hex(table->entries[idx].mac_address, ETH_ALEN),
                 table->entries[idx].bytes_transferred) < 0) {
 #endif
-#ifndef NDEBUG
       perror("Error writing update");
-#endif
       return -1;
     }
   }
   if (fprintf(handle, "\n") < 0) {
-#ifndef NDEBUG
     perror("Error writing update");
-#endif
     return -1;
   }
   return 0;
