@@ -434,6 +434,10 @@ static void set_next_alarm() {
 #endif
 }
 
+/* Unix only provides a single ALRM signal, so we use the same handler for
+ * frequent updates (every 5 seconds) and differential updates (every 30
+ * seconds). We trigger an ALRM every 5 seconds and only write differential
+ * updates every 6th ALRM. */
 static void handle_signals(int sig) {
   if (sig == SIGINT || sig == SIGTERM) {
     write_update();

@@ -59,6 +59,8 @@ enum reserved_flow_indices {
 
 /* Generate differential updates this often. */
 #ifndef UPDATE_PERIOD_SECONDS
+/* If frequent updates are available, then UPDATE_PERIOD_SECONDS must
+ * be an integer multiple of FREQUENT_UPDATE_PERIOD_SECONDS. */
 #define UPDATE_PERIOD_SECONDS 30
 #endif
 #ifndef FREQUENT_UPDATE_PERIOD_SECONDS
