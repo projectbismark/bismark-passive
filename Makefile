@@ -21,7 +21,7 @@ endif
 ifdef FREQUENT_UPDATES
 CFLAGS += -DENABLE_FREQUENT_UPDATES
 endif
-LDFLAGS += -lpcap -lresolv -pthread -lz
+LDFLAGS += -lpcap -lresolv -lz
 SRCS = \
 	src/address_table.c \
 	src/anonymization.c \

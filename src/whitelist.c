@@ -29,9 +29,7 @@ int domain_whitelist_load(domain_whitelist_t* whitelist,
   for (idx = 0; idx < num_lines; ++idx) {
     whitelist->domains[idx] = strdup(strtok(ptr, "\n"));
     if (!whitelist->domains[idx]) {
-#ifndef NDEBUG
       perror("Error duplicating whitelist line");
-#endif
       free(contents);
       return -1;
     }
@@ -73,16 +71,12 @@ int domain_whitelist_write_update(const domain_whitelist_t* whitelist,
   int idx;
   for (idx = 0; idx < whitelist->size; ++idx) {
     if (!gzprintf(handle, "%s\n", whitelist->domains[idx])) {
-#ifndef NDEBUG
       perror("Error sending update");
-#endif
       return -1;
     }
   }
   if (!gzprintf(handle, "\n")) {
-#ifndef NDEBUG
     perror("Error sending update");
-#endif
     return -1;
   }
   return 0;

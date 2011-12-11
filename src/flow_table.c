@@ -141,9 +141,7 @@ int flow_table_write_update(flow_table_t* const table, gzFile handle) {
                 table->num_elements,
                 table->num_expired_flows,
                 table->num_dropped_flows)) {
-#ifndef NDEBUG
     perror("Error sending update");
-#endif
     return -1;
   }
 
@@ -158,9 +156,7 @@ int flow_table_write_update(flow_table_t* const table, gzFile handle) {
 #ifndef DISABLE_ANONYMIZATION
       } else {
         if (anonymize_ip(table->entries[idx].ip_source, &source_digest)) {
-#ifndef NDEBUG
           fprintf(stderr, "Error anonymizing update\n");
-#endif
           return -1;
         }
       }
@@ -171,9 +167,7 @@ int flow_table_write_update(flow_table_t* const table, gzFile handle) {
       } else {
         if (anonymize_ip(table->entries[idx].ip_destination,
                          &destination_digest)) {
-#ifndef NDEBUG
           fprintf(stderr, "Error anonymizing update\n");
-#endif
           return -1;
         }
       }
@@ -189,18 +183,14 @@ int flow_table_write_update(flow_table_t* const table, gzFile handle) {
             table->entries[idx].transport_protocol,
             table->entries[idx].port_source,
             table->entries[idx].port_destination)) {
-#ifndef NDEBUG
         perror("Error sending update");
-#endif
         return -1;
       }
       table->entries[idx].occupied = ENTRY_OCCUPIED;
     }
   }
   if (!gzprintf(handle, "\n")) {
-#ifndef NDEBUG
     perror("Error sending update");
-#endif
     return -1;
   }
 
@@ -211,21 +201,15 @@ int flow_table_write_update(flow_table_t* const table, gzFile handle) {
 int flow_table_write_thresholded_ips(const flow_table_t* const table,
                                      const uint64_t session_id,
                                      const int sequence_number) {
-#ifndef NDEBUG
   printf("Writing thresholded flows log to %s\n", FLOW_THRESHOLDING_LOG);
-#endif
   FILE* handle = fopen(FLOW_THRESHOLDING_LOG, "w");
   if (!handle) {
-#ifndef NDEBUG
     perror("Error opening thresholded flows log");
-#endif
     return -1;
   }
 
   if (fprintf(handle, "%" PRIu64 " %d\n\n", session_id, sequence_number) < 2) {
-#ifndef NDEBUG
     perror("Error writing thesholded flows log");
-#endif
     fclose(handle);
     return -1;
   }
@@ -240,9 +224,7 @@ int flow_table_write_thresholded_ips(const flow_table_t* const table,
                   table->entries[idx].ip_source,
                   table->entries[idx].ip_destination,
                   table->entries[idx].num_packets) < 0) {
-#ifndef NDEBUG
         perror("Error writing thresholded flows log");
-#endif
         fclose(handle);
         return -1;
       }

@@ -1,6 +1,6 @@
 #include <inttypes.h>
 #include <pcap.h>
-#include <pthread.h>
+/* sigaction, sigprocmask, SIG* */
 #include <signal.h>
 #include <stdio.h>
 /* exit() */
@@ -56,12 +56,8 @@ static drop_statistics_t drop_statistics;
 static device_throughput_table_t device_throughput_table;
 #endif
 
-static pthread_t signal_thread;
-static pthread_t update_thread;
-#ifdef ENABLE_FREQUENT_UPDATES
-static pthread_t frequent_update_thread;
-#endif
-static pthread_mutex_t update_lock;
+/* Set of signals that get blocked while processing a packet. */
+sigset_t block_set;
 
 /* Will be filled in the bismark node ID, from /etc/bismark/ID. */
 static char bismark_id[256];
@@ -75,6 +71,13 @@ static int64_t start_timestamp_microseconds;
 static int sequence_number = 0;
 #ifdef ENABLE_FREQUENT_UPDATES
 static int frequent_sequence_number = 0;
+#endif
+
+static unsigned int alarm_count = 0;
+#ifdef ENABLE_FREQUENT_UPDATES
+#define ALARMS_PER_UPDATE (UPDATE_PERIOD_SECONDS / FREQUENT_UPDATE_PERIOD_SECONDS)
+#else
+#define ALARMS_PER_UPDATE 1
 #endif
 
 /* This extracts flow information from raw packet contents. */
@@ -95,9 +98,7 @@ static uint16_t get_flow_entry_for_packet(
       || device_throughput_table_record(&device_throughput_table,
                                         eth_header->ether_dhost,
                                         full_length)) {
-#ifndef NDEBUG
     fprintf(stderr, "Error adding to device throughput table\n");
-#endif
   }
 #endif
   if (ether_type == ETHERTYPE_IP) {
@@ -127,14 +128,10 @@ static uint16_t get_flow_entry_for_packet(
             &address_table, entry->ip_destination, eth_header->ether_dhost);
       }
     } else {
-#ifndef NDEBUG
       fprintf(stderr, "Unhandled transport protocol: %u\n", ip_header->protocol);
-#endif
     }
   } else {
-#ifndef NDEBUG
     fprintf(stderr, "Unhandled network protocol: %hu\n", ether_type);
-#endif
   }
   return ether_type;
 }
@@ -144,8 +141,8 @@ static void process_packet(
         u_char* const user,
         const struct pcap_pkthdr* const header,
         const u_char* const bytes) {
-  if (pthread_mutex_lock(&update_lock)) {
-    perror("Error locking global mutex");
+  if (sigprocmask(SIG_BLOCK, &block_set, NULL) < 0) {
+    perror("sigprocmask");
     exit(1);
   }
 
@@ -215,9 +212,7 @@ static void process_packet(
   int packet_id = packet_series_add_packet(
         &packet_data, &header->ts, header->len, flow_id);
   if (packet_id < 0) {
-#ifndef NDEBUG
     fprintf(stderr, "Error adding to packet series\n");
-#endif
     drop_statistics_process_packet(&drop_statistics, header->len);
   }
 
@@ -225,8 +220,8 @@ static void process_packet(
     process_dns_packet(dns_bytes, dns_bytes_len, &dns_table, packet_id, mac_id);
   }
 
-  if (pthread_mutex_unlock(&update_lock)) {
-    perror("Error unlocking global mutex");
+  if (sigprocmask(SIG_UNBLOCK, &block_set, NULL) < 0) {
+    perror("sigprocmask");
     exit(1);
   }
 }
@@ -238,11 +233,9 @@ static void write_update() {
   int have_pcap_statistics;
   if (pcap_handle) {
     have_pcap_statistics = !pcap_stats(pcap_handle, &statistics);
-#ifndef NDEBUG
     if (!have_pcap_statistics) {
       pcap_perror(pcap_handle, "Error fetching pcap statistics");
     }
-#endif
   } else {
     have_pcap_statistics = 0;
   }
@@ -251,20 +244,14 @@ static void write_update() {
   if (flow_table_write_thresholded_ips(&flow_table,
                                        start_timestamp_microseconds,
                                        sequence_number)) {
-#ifndef NDEBUG
     fprintf(stderr, "Couldn't write thresholded flows log\n");
-#endif
   }
 #endif
 
-#ifndef NDEBUG
   printf("Writing differential log to %s\n", PENDING_UPDATE_FILENAME);
-#endif
   gzFile handle = gzopen (PENDING_UPDATE_FILENAME, "wb");
   if (!handle) {
-#ifndef NDEBUG
     perror("Could not open update file for writing");
-#endif
     exit(1);
   }
 
@@ -276,9 +263,7 @@ static void write_update() {
                 "%d\n%s\n",
                 FILE_FORMAT_VERSION,
                 BUILD_ID)) {
-#ifndef NDEBUG
     perror("Error writing update");
-#endif
     exit(1);
   }
   if (!gzprintf(handle,
@@ -287,9 +272,7 @@ static void write_update() {
                 start_timestamp_microseconds,
                 sequence_number,
                 (int64_t)current_timestamp)) {
-#ifndef NDEBUG
     perror("Error writing update");
-#endif
     exit(1);
   }
   if (have_pcap_statistics) {
@@ -298,16 +281,12 @@ static void write_update() {
                   statistics.ps_recv,
                   statistics.ps_drop,
                   statistics.ps_ifdrop)) {
-#ifndef NDEBUG
       perror("Error writing update");
-#endif
       exit(1);
     }
   }
   if (!gzprintf(handle, "\n")) {
-#ifndef NDEBUG
     perror("Error writing update");
-#endif
     exit(1);
   }
   if (sequence_number == 0) {
@@ -316,9 +295,7 @@ static void write_update() {
     }
   } else {
     if (!gzprintf(handle, "\n")) {
-#ifndef NDEBUG
       perror("Error writing update");
-#endif
       exit(1);
     }
   }
@@ -328,9 +305,7 @@ static void write_update() {
   }
 #else
   if (!gzprintf(handle, "UNANONYMIZED\n\n")) {
-#ifndef NDEBUG
     perror("Error writing update");
-#endif
     exit(1);
   }
 #endif
@@ -351,9 +326,7 @@ static void write_update() {
            start_timestamp_microseconds,
            sequence_number);
   if (rename(PENDING_UPDATE_FILENAME, update_filename)) {
-#ifndef NDEBUG
     perror("Could not stage update");
-#endif
     exit(1);
   }
 
@@ -366,60 +339,26 @@ static void write_update() {
   drop_statistics_init(&drop_statistics);
 }
 
-static void* updater(void* arg) {
-  while (1) {
-    sleep(UPDATE_PERIOD_SECONDS);
-    if (pthread_mutex_lock(&update_lock)) {
-      perror("Error acquiring mutex for update");
-      exit(1);
-    }
-    write_update();
-    if (pthread_mutex_unlock(&update_lock)) {
-      perror("Error unlocking update mutex");
-      exit(1);
-    }
-  }
-}
-
 #ifdef ENABLE_FREQUENT_UPDATES
 static void write_frequent_update() {
-  FILE* handle = fopen (PENDING_FREQUENT_UPDATE_FILENAME, "w");
+  printf("Writing frequent log to %s\n", PENDING_FREQUENT_UPDATE_FILENAME);
+  FILE* handle = fopen(PENDING_FREQUENT_UPDATE_FILENAME, "w");
   if (!handle) {
-#ifndef NDEBUG
     perror("Could not open update file for writing");
-#endif
     exit(1);
   }
-  if (!fprintf(handle,
-               "%d\n",
-               FREQUENT_FILE_FORMAT_VERSION) < 0) {
-#ifndef NDEBUG
+  if (fprintf(handle, "%d\n", FREQUENT_FILE_FORMAT_VERSION) < 0) {
     perror("Error writing update");
-#endif
     exit(1);
   }
   time_t current_timestamp = time(NULL);
-  if (!fprintf(handle,
-               "%s %" PRId64 "\n\n",
-               BUILD_ID,
-               (int64_t)current_timestamp) < 0) {
-#ifndef NDEBUG
+  if (fprintf(handle,
+              "%s %" PRId64 "\n\n",
+              BUILD_ID,
+              (int64_t)current_timestamp) < 0) {
     perror("Error writing update");
-#endif
     exit(1);
   }
-#ifndef DISABLE_ANONYMIZATION
-  if (anonymization_write_update(handle)) {
-    exit(1);
-  }
-#else
-  if (!gzprintf(handle, "UNANONYMIZED\n\n")) {
-#ifndef NDEBUG
-    perror("Error writing update");
-#endif
-    exit(1);
-  }
-#endif
   if (device_throughput_table_write_update(&device_throughput_table, handle)) {
     exit(1);
   }
@@ -433,9 +372,7 @@ static void write_frequent_update() {
            start_timestamp_microseconds,
            frequent_sequence_number);
   if (rename(PENDING_FREQUENT_UPDATE_FILENAME, update_filename)) {
-#ifndef NDEBUG
     perror("Could not stage update");
-#endif
     exit(1);
   }
 
@@ -443,42 +380,54 @@ static void write_frequent_update() {
 
   device_throughput_table_init(&device_throughput_table);
 }
-
-static void* frequent_updater(void* arg) {
-  while (1) {
-    sleep(FREQUENT_UPDATE_PERIOD_SECONDS);
-
-    if (pthread_mutex_lock(&update_lock)) {
-      perror("Error acquiring mutex for update");
-      exit(1);
-    }
-    write_frequent_update();
-    if (pthread_mutex_unlock(&update_lock)) {
-      perror("Error unlocking update mutex");
-      exit(1);
-    }
-  }
-}
 #endif
 
-static void* handle_signals(void* arg) {
-  sigset_t* signal_set = (sigset_t*)arg;
-  int signal_handled;
-  while (1) {
-    if (sigwait(signal_set, &signal_handled)) {
-      perror("Error handling signal");
-      continue;
-    }
-    if (pthread_mutex_lock(&update_lock)) {
-      perror("Error acquiring mutex for update");
-      exit(1);
-    }
+static void set_next_alarm() {
+#ifdef ENABLE_FREQUENT_UPDATES
+  alarm(FREQUENT_UPDATE_PERIOD_SECONDS);
+#else
+  alarm(UPDATE_PERIOD_SECONDS);
+#endif
+}
+
+/* Unix only provides a single ALRM signal, so we use the same handler for
+ * frequent updates (every 5 seconds) and differential updates (every 30
+ * seconds). We trigger an ALRM every 5 seconds and only write differential
+ * updates every 6th ALRM. */
+static void handle_signals(int sig) {
+  if (sig == SIGINT || sig == SIGTERM) {
     write_update();
 #ifdef ENABLE_FREQUENT_UPDATES
     write_frequent_update();
 #endif
     exit(0);
+  } else if (sig == SIGALRM) {
+    alarm_count += 1;
+    if (alarm_count % ALARMS_PER_UPDATE == 0) {
+      write_update();
+    }
+#ifdef ENABLE_FREQUENT_UPDATES
+    write_frequent_update();
+#endif
+    set_next_alarm();
   }
+}
+
+static void initialize_signal_handler() {
+  struct sigaction action;
+  action.sa_handler = handle_signals;
+  sigemptyset(&action.sa_mask);
+  action.sa_flags = SA_RESTART;
+  if (sigaction(SIGINT, &action, NULL) < 0
+      || sigaction(SIGTERM, &action, NULL) < 0
+      || sigaction(SIGALRM, &action, NULL)) {
+    perror("sigaction");
+    exit(1);
+  }
+  sigemptyset(&block_set);
+  sigaddset(&block_set, SIGINT);
+  sigaddset(&block_set, SIGTERM);
+  sigaddset(&block_set, SIGALRM);
 }
 
 static pcap_t* initialize_pcap(const char* const interface) {
@@ -496,18 +445,17 @@ static pcap_t* initialize_pcap(const char* const interface) {
   return handle;
 }
 
-static int initialize_bismark_id() {
+static void initialize_bismark_id() {
   FILE* handle = fopen(BISMARK_ID_FILENAME, "r");
   if (!handle) {
     perror("Cannot open Bismark ID file " BISMARK_ID_FILENAME);
-    return -1;
+    exit(1);
   }
   if(fscanf(handle, "%255s\n", bismark_id) < 1) {
     perror("Cannot read Bismark ID file " BISMARK_ID_FILENAME);
-    return -1;
+    exit(1);
   }
   fclose(handle);
-  return 0;
 }
 
 static int initialize_domain_whitelist(const char* const filename) {
@@ -563,9 +511,7 @@ int main(int argc, char *argv[]) {
   start_timestamp_microseconds
       = start_timeval.tv_sec * NUM_MICROS_PER_SECOND + start_timeval.tv_usec;
 
-  if (initialize_bismark_id()) {
-    return 1;
-  }
+  initialize_bismark_id();
 
   if (argc < 3 || initialize_domain_whitelist(argv[2])) {
     fprintf(stderr, "Error loading domain whitelist; whitelisting disabled.\n");
@@ -586,32 +532,8 @@ int main(int argc, char *argv[]) {
   device_throughput_table_init(&device_throughput_table);
 #endif
 
-  if (pthread_mutex_init(&update_lock, NULL)) {
-    perror("Error initializing mutex");
-    return 1;
-  }
-  sigset_t signal_set;
-  sigemptyset(&signal_set);
-  sigaddset(&signal_set, SIGINT);
-  sigaddset(&signal_set, SIGTERM);
-  if (pthread_sigmask(SIG_BLOCK, &signal_set, NULL)) {
-    perror("Error calling pthread_sigmask");
-    return 1;
-  }
-  if (pthread_create(&signal_thread, NULL, handle_signals, &signal_set)) {
-    perror("Error creating signal handling thread");
-    return 1;
-  }
-  if (pthread_create(&update_thread, NULL, updater, NULL)) {
-    perror("Error creating updates thread");
-    return 1;
-  }
-#ifdef ENABLE_FREQUENT_UPDATES
-  if (pthread_create(&frequent_update_thread, NULL, frequent_updater, NULL)) {
-    perror("Error creating frequent updates thread");
-    return 1;
-  }
-#endif
+  initialize_signal_handler();
+  set_next_alarm();
 
   /* By default, pcap uses an internal buffer of 500 KB. Any packets that
    * overflow this buffer will be dropped. pcap_stats tells the number of

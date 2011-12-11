@@ -1,8 +1,6 @@
 #include "anonymization.h"
 
-#ifndef NDEBUG
 #include <assert.h>
-#endif
 #include <endian.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,9 +12,7 @@
 
 static uint8_t seed[ANONYMIZATION_SEED_LEN];
 static char seed_hex_digest[SHA_DIGEST_LENGTH * 2 + 1];
-#ifndef NDEBUG
 static int initialized = 0;
-#endif
 
 /* Anonymize a buffer of given length. Places the resulting digest into the
  * provided digest buffer, which must be at least ANONYMIZATION_DIGEST_LENGTH
@@ -24,10 +20,7 @@ static int initialized = 0;
 static void anonymization_process(const uint8_t* const data,
                                   const int len,
                                   unsigned char* const digest) {
-#ifndef NDEBUG
   assert(initialized);
-#endif
-
   sha1_hmac(seed, ANONYMIZATION_SEED_LEN, data, len, digest);
 }
 
@@ -46,27 +39,19 @@ static int init_hex_seed_digest() {
 int anonymization_init() {
   FILE* handle = fopen(ANONYMIZATION_SEED_FILE, "rb");
   if (!handle) {
-#ifndef NDEBUG
     perror("Error opening seed file");
-#endif
     return -1;
   }
   if (fread(seed, 1, ANONYMIZATION_SEED_LEN, handle) < ANONYMIZATION_SEED_LEN) {
-#ifndef NDEBUG
     perror("Error reading seed file");
-#endif
     fclose(handle);
     return -1;
   }
 
-#ifndef NDEBUG
   initialized = 1;
-#endif
 
   if (init_hex_seed_digest()) {
-#ifndef NDEBUG
     initialized = 0;
-#endif
     return -1;
   }
 
@@ -100,9 +85,7 @@ inline int anonymize_mac(uint8_t mac[ETH_ALEN], uint8_t digest[ETH_ALEN]) {
 
 int anonymization_write_update(gzFile handle) {
   if (!gzprintf(handle, "%s\n\n", seed_hex_digest)) {
-#ifndef NDEBUG
     perror("Error writing update");
-#endif
     return -1;
   }
   return 0;

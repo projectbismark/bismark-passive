@@ -25,9 +25,7 @@ int drop_statistics_write_update(drop_statistics_t* const drop_statistics,
                    "%" PRIu32 " %" PRIu32 "\n",
                    idx,
                    drop_statistics->packet_sizes[idx]) < 0) {
-#ifndef NDEBUG
         perror("Error sending update");
-#endif
         return -1;
       }
     }

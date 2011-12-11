@@ -59,10 +59,12 @@ enum reserved_flow_indices {
 
 /* Generate differential updates this often. */
 #ifndef UPDATE_PERIOD_SECONDS
+/* If frequent updates are available, then UPDATE_PERIOD_SECONDS must
+ * be an integer multiple of FREQUENT_UPDATE_PERIOD_SECONDS. */
 #define UPDATE_PERIOD_SECONDS 30
 #endif
 #ifndef FREQUENT_UPDATE_PERIOD_SECONDS
-#define FREQUENT_UPDATE_PERIOD_SECONDS 15
+#define FREQUENT_UPDATE_PERIOD_SECONDS 5
 #endif
 #define PENDING_UPDATE_FILENAME "/tmp/bismark-passive/current-update.gz"
 #define PENDING_FREQUENT_UPDATE_FILENAME "/tmp/bismark-passive/current-frequent-update"

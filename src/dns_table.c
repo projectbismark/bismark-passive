@@ -102,9 +102,7 @@ int dns_table_write_update(dns_table_t* const table, gzFile handle) {
                 "%d %d\n",
                 table->num_dropped_a_entries,
                 table->num_dropped_cname_entries)) {
-#ifndef NDEBUG
     perror("Error writing update");
-#endif
     return -1;
   }
   int idx;
@@ -119,9 +117,7 @@ int dns_table_write_update(dns_table_t* const table, gzFile handle) {
                     table->a_entries[idx].domain_name,
                     table->a_entries[idx].ip_address,
                     table->a_entries[idx].ttl)) {
-#ifndef NDEBUG
         perror("Error writing update");
-#endif
         return -1;
       }
 #ifndef DISABLE_ANONYMIZATION
@@ -140,18 +136,14 @@ int dns_table_write_update(dns_table_t* const table, gzFile handle) {
             buffer_to_hex(domain_digest, ANONYMIZATION_DIGEST_LENGTH),
             address_digest,
             table->a_entries[idx].ttl)) {
-#ifndef NDEBUG
         perror("Error writing update");
-#endif
         return -1;
       }
     }
 #endif
   }
   if (!gzprintf(handle, "\n")) {
-#ifndef NDEBUG
     perror("Error writing update");
-#endif
     return -1;
   }
 
@@ -166,9 +158,7 @@ int dns_table_write_update(dns_table_t* const table, gzFile handle) {
                     table->cname_entries[idx].domain_name,
                     table->cname_entries[idx].cname,
                     table->cname_entries[idx].ttl)) {
-#ifndef NDEBUG
         perror("Error writing update");
-#endif
         return -1;
       }
 #ifndef DISABLE_ANONYMIZATION
@@ -193,18 +183,14 @@ int dns_table_write_update(dns_table_t* const table, gzFile handle) {
                     hex_domain_digest,
                     hex_cname_digest,
                     table->cname_entries[idx].ttl)) {
-#ifndef NDEBUG
         perror("Error writing update");
-#endif
         return -1;
       }
     }
 #endif
   }
   if (!gzprintf(handle, "\n")) {
-#ifndef NDEBUG
     perror("Error writing update");
-#endif
     return -1;
   }
   return 0;
