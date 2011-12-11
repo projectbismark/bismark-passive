@@ -66,7 +66,7 @@ enum reserved_flow_indices {
 #endif
 #define PENDING_UPDATE_FILENAME "/tmp/bismark-passive/current-update.gz"
 #define PENDING_FREQUENT_UPDATE_FILENAME "/tmp/bismark-passive/current-frequent-update"
-#define UPDATE_FILENAME "/tmp/bismark-passive/updates/%s-%" PRIu64 "-%d.gz"
+#define UPDATE_FILENAME "/tmp/bismark-uploads/passive/%s-%" PRIu64 "-%d.gz"
 #define FREQUENT_UPDATE_FILENAME "/tmp/bismark-uploads/passive-frequent/%s-%" PRIu64 "-%d"
 
 #ifndef BISMARK_ID_FILENAME
