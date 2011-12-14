@@ -45,6 +45,7 @@ TEST_SRCS = \
 	src/dns_table.c \
 	src/flow_table.c \
 	src/packet_series.c \
+	src/sha1.c \
 	src/tests.c \
 	src/util.c \
 	src/whitelist.c
