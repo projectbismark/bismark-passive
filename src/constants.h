@@ -57,10 +57,10 @@ enum reserved_flow_indices {
  * expired to prevent timestamp inaccuracy. */
 #define FLOW_TABLE_MIN_UPDATE_OFFSET INT16_MIN
 
-/* Generate differential updates this often. */
+/* Generate differential updates this often. If frequent updates are enabled,
+ * then UPDATE_PERIOD_SECONDS must be an integer multiple of
+ * FREQUENT_UPDATE_PERIOD_SECONDS. */
 #ifndef UPDATE_PERIOD_SECONDS
-/* If frequent updates are available, then UPDATE_PERIOD_SECONDS must
- * be an integer multiple of FREQUENT_UPDATE_PERIOD_SECONDS. */
 #define UPDATE_PERIOD_SECONDS 30
 #endif
 #ifndef FREQUENT_UPDATE_PERIOD_SECONDS
@@ -86,6 +86,11 @@ enum reserved_flow_indices {
 #define DROP_STATISTICS_MAXIMUM_PACKET_SIZE 1500
 
 #define DEVICE_THROUGHPUT_TABLE_SIZE 32
+
+#define PCAP_TIMEOUT_MILLISECONDS 1000
+#define PCAP_PROMISCUOUS 0
+
+#define MAX_NODEID_PREFIX_LEN 2
 
 /* Hashtable parameters */
 #define HT_NUM_PROBES 3

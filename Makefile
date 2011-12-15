@@ -21,6 +21,9 @@ endif
 ifdef FREQUENT_UPDATES
 CFLAGS += -DENABLE_FREQUENT_UPDATES
 endif
+ifdef DISABLE_FLOW_THRESHOLDING
+CFLAGS += -DDISABLE_FLOW_THRESHOLDING
+endif
 LDFLAGS += -lpcap -lresolv -lz
 SRCS = \
 	src/address_table.c \

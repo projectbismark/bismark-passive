@@ -168,7 +168,7 @@ static void process_packet(
   flow_table_entry_t flow_entry;
   flow_table_entry_init(&flow_entry);
   int mac_id = -1;
-  u_char* dns_bytes;
+  u_char* dns_bytes = NULL;
   int dns_bytes_len = -1;
   int ether_type = get_flow_entry_for_packet(
       bytes, header->caplen, header->len, &flow_entry, &mac_id, &dns_bytes, &dns_bytes_len);
@@ -226,6 +226,17 @@ static void process_packet(
   }
 }
 
+#ifndef DISABLE_FLOW_THRESHOLDING
+static void write_flow_log() {
+  printf("Writing thresholded flows log to %s\n", FLOW_THRESHOLDING_LOG);
+  if (flow_table_write_thresholded_ips(&flow_table,
+                                       start_timestamp_microseconds,
+                                       sequence_number)) {
+    fprintf(stderr, "Couldn't write thresholded flows log\n");
+  }
+}
+#endif
+
 /* Write an update to UPDATE_FILENAME. This is the file that will be sent to the
  * server. The data is compressed on-the-fly using gzip. */
 static void write_update() {
@@ -240,13 +251,7 @@ static void write_update() {
     have_pcap_statistics = 0;
   }
 
-#ifndef DISABLE_FLOW_THRESHOLDING
-  if (flow_table_write_thresholded_ips(&flow_table,
-                                       start_timestamp_microseconds,
-                                       sequence_number)) {
-    fprintf(stderr, "Couldn't write thresholded flows log\n");
-  }
-#endif
+  dns_table_mark_unanonymized(&dns_table, &flow_table);
 
   printf("Writing differential log to %s\n", PENDING_UPDATE_FILENAME);
   gzFile handle = gzopen (PENDING_UPDATE_FILENAME, "wb");
@@ -255,10 +260,6 @@ static void write_update() {
     exit(1);
   }
 
-  dns_table_mark_unanonymized(&dns_table, &flow_table);
-
-  time_t current_timestamp = time(NULL);
-
   if (!gzprintf(handle,
                 "%d\n%s\n",
                 FILE_FORMAT_VERSION,
@@ -266,6 +267,7 @@ static void write_update() {
     perror("Error writing update");
     exit(1);
   }
+  time_t current_timestamp = time(NULL);
   if (!gzprintf(handle,
                 "%s %" PRId64 " %d %" PRId64 "\n",
                 bismark_id,
@@ -404,6 +406,9 @@ static void handle_signals(int sig) {
   } else if (sig == SIGALRM) {
     alarm_count += 1;
     if (alarm_count % ALARMS_PER_UPDATE == 0) {
+#ifndef DISABLE_FLOW_THRESHOLDING
+      write_flow_log();
+#endif
       write_update();
     }
 #ifdef ENABLE_FREQUENT_UPDATES
@@ -432,12 +437,12 @@ static void initialize_signal_handler() {
 
 static pcap_t* initialize_pcap(const char* const interface) {
   char errbuf[PCAP_ERRBUF_SIZE];
-  pcap_t* const handle = pcap_open_live(interface, BUFSIZ, 0, 1000, errbuf);
+  pcap_t* const handle = pcap_open_live(
+      interface, BUFSIZ, PCAP_PROMISCUOUS, PCAP_TIMEOUT_MILLISECONDS, errbuf);
   if (!handle) {
     fprintf(stderr, "Couldn't open device %s: %s\n", interface, errbuf);
     return NULL;
   }
-
   if (pcap_datalink(handle) != DLT_EN10MB) {
     fprintf(stderr, "Must capture on an Ethernet link\n");
     return NULL;

@@ -201,19 +201,16 @@ int flow_table_write_update(flow_table_t* const table, gzFile handle) {
 int flow_table_write_thresholded_ips(const flow_table_t* const table,
                                      const uint64_t session_id,
                                      const int sequence_number) {
-  printf("Writing thresholded flows log to %s\n", FLOW_THRESHOLDING_LOG);
   FILE* handle = fopen(FLOW_THRESHOLDING_LOG, "w");
   if (!handle) {
     perror("Error opening thresholded flows log");
     return -1;
   }
-
   if (fprintf(handle, "%" PRIu64 " %d\n\n", session_id, sequence_number) < 2) {
     perror("Error writing thesholded flows log");
     fclose(handle);
     return -1;
   }
-
   int idx;
   for (idx = 0; idx < FLOW_TABLE_ENTRIES; ++idx) {
     if (table->entries[idx].occupied == ENTRY_OCCUPIED_BUT_UNSENT
