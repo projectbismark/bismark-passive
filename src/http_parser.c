@@ -18,7 +18,6 @@ static void add_url(http_table_t* http_table,
   entry.flow_id = flow_id;
   entry.url=strdup(ul);
   http_table_add_url(http_table, &entry);
-//  printf("%s %d\n",entry.url, entry.url);
 #ifndef NDEBUG
   fprintf(stderr,
           "Request URL entry %d: %s %d\n",
@@ -40,9 +39,7 @@ tokenize(char *buf, char **vec, int vecsize, int delimiter)
  n++; 
  while(n<vecsize)
  {
-   printf("%s %d\n",vec[0],n);   
    vec[n]=strtok(NULL, " ");
-//   printf("%d %s\n",n,vec[n]);
    if(vec[n]==NULL) return n+1;
    n++; 
  }   
@@ -59,7 +56,6 @@ int process_http_packet(const uint8_t* const bytes,
   char * argv[3];
   int n;
   if((n=tokenize((char*)bytes,argv,3,' ')) ==3) {
-   printf("What is there: %s %s\n",argv[0],argv[1]);
    if(!strcasecmp(argv[0],"GET")) // a GET command
     printf("retrieved %s size %u \n",argv[1], (int)strlen(argv[1]));
    else return -1; 
