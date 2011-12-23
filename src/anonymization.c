@@ -72,6 +72,12 @@ inline int anonymize_domain(const char* domain, unsigned char* digest) {
   return 0;
 }
 
+inline int anonymize_url(const char* url, unsigned char* digest) {
+  anonymization_process((unsigned char*)url, strlen(url), digest);
+  return 0;
+}
+
+
 #define MAC_UPPER_MASK 0xffffff000000
 #define MAC_LOWER_MASK 0x000000ffffff
 
