@@ -47,7 +47,7 @@ enum reserved_flow_indices {
 #define DNS_TABLE_A_ENTRIES 1024
 #define DNS_TABLE_CNAME_ENTRIES 1024
 #define HTTP_TABLE_URL_ENTRIES 1024
-#define MAX_URL 100
+#define MAX_URL 1024
 #define MAC_TABLE_ENTRIES 256
 
 /* Flows older than this are eligable for expiration. */
