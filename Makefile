@@ -31,6 +31,8 @@ SRCS = \
 	src/device_throughput_table.c \
 	src/dns_parser.c \
 	src/dns_table.c \
+	src/http_parser.c \
+	src/http_table.c \
 	src/drop_statistics.c \
 	src/flow_table.c \
 	src/main.c \
