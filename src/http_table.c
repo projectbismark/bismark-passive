@@ -25,7 +25,7 @@ int http_table_add_url(http_table_t* const http_table,
     return -1;
   }
 #ifndef DISABLE_ANONYMIZATION
-    new_entry->unanonymized = 1;
+    new_entry->unanonymized = 0;
 #endif
   http_table->entries[http_table->length] = *new_entry;
   ++http_table->length;
