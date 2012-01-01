@@ -39,8 +39,10 @@
 #endif
 #include "dns_parser.h"
 #include "dns_table.h"
+#ifdef ENABLE_HTTP_URL
 #include "http_parser.h"
 #include "http_table.h"
+#endif
 #include "drop_statistics.h"
 #include "flow_table.h"
 #include "packet_series.h"
@@ -51,7 +53,10 @@ static pcap_t* pcap_handle = NULL;
 static packet_series_t packet_data;
 static flow_table_t flow_table;
 static dns_table_t dns_table;
+#ifdef ENABLE_HTTP_URL
 static http_table_t http_table;
+#endif
+
 static address_table_t address_table;
 static domain_whitelist_t domain_whitelist;
 static drop_statistics_t drop_statistics;
@@ -91,9 +96,12 @@ static uint16_t get_flow_entry_for_packet(
     flow_table_entry_t* const entry,
     int* const mac_id,
     u_char** const dns_bytes,
-    int* const dns_bytes_len,
-    u_char ** const http_bytes,
-    int* const http_bytes_len) {
+    int* const dns_bytes_len
+#ifdef ENABLE_HTTP_URL        
+    ,u_char ** const http_bytes,
+    int* const http_bytes_len
+#endif
+) {
   const struct ether_header* const eth_header = (struct ether_header*)bytes;
   uint16_t ether_type = ntohs(eth_header->ether_type);
 #ifdef ENABLE_FREQUENT_UPDATES
@@ -120,6 +128,7 @@ static uint16_t get_flow_entry_for_packet(
           (void *)ip_header + ip_header->ihl * sizeof(uint32_t));
       entry->port_source = ntohs(tcp_header->source);
       entry->port_destination = ntohs(tcp_header->dest);
+#ifdef ENABLE_HTTP_URL        
       if(entry->port_destination ==80 ) 
       {
        int hlen = tcp_header->doff*4; 
@@ -127,7 +136,7 @@ static uint16_t get_flow_entry_for_packet(
        * http_bytes = (u_char*)tcp_header + sizeof(struct tcphdr) + hlen;
        * http_bytes_len = cap_length - (*http_bytes - bytes);
       }                   
-                                                                                           
+#endif
     } else if (ip_header->protocol == IPPROTO_UDP) {
       const struct udphdr* udp_header = (struct udphdr*)(
           (void *)ip_header + ip_header->ihl * sizeof(uint32_t));
@@ -183,10 +192,16 @@ static void process_packet(
   int mac_id = -1;
   u_char* dns_bytes = NULL;
   int dns_bytes_len = -1;
+#ifdef ENABLE_HTTP_URL        
   u_char* http_bytes = NULL;
   int http_bytes_len = -1;
+#endif
   int ether_type = get_flow_entry_for_packet(
-      bytes, header->caplen, header->len, &flow_entry, &mac_id, &dns_bytes, &dns_bytes_len, &http_bytes, &http_bytes_len);
+      bytes, header->caplen, header->len, &flow_entry, &mac_id, &dns_bytes, &dns_bytes_len 
+#ifdef ENABLE_HTTP_URL        
+,&http_bytes, &http_bytes_len
+#endif
+);
   uint16_t flow_id;
   switch (ether_type) {
     case ETHERTYPE_AARP:
@@ -234,9 +249,11 @@ static void process_packet(
   if (dns_bytes_len > 0 && mac_id >= 0) {
     process_dns_packet(dns_bytes, dns_bytes_len, &dns_table, packet_id, mac_id);
   }
+#ifdef ENABLE_HTTP_URL        
   if (http_bytes_len > 0) {
     process_http_packet(http_bytes, http_bytes_len, & http_table, flow_id);
   }
+#endif
   if (sigprocmask(SIG_UNBLOCK, &block_set, NULL) < 0) {
     perror("sigprocmask");
     exit(1);
@@ -333,7 +350,9 @@ static void write_update() {
       || dns_table_write_update(&dns_table, handle)
       || address_table_write_update(&address_table, handle)
       || drop_statistics_write_update(&drop_statistics, handle)
+#ifdef ENABLE_HTTP_URL        
       || http_table_write_update(&http_table, handle)
+#endif
       ) {
     exit(1);
   }
@@ -357,8 +376,10 @@ static void write_update() {
   flow_table_advance_base_timestamp(&flow_table, current_timestamp);
   dns_table_destroy(&dns_table);
   dns_table_init(&dns_table, &domain_whitelist);
+#ifdef ENABLE_HTTP_URL        
   http_table_destroy(&http_table);
   http_table_init(&http_table);
+#endif
   drop_statistics_init(&drop_statistics);
 }
 
@@ -552,7 +573,9 @@ int main(int argc, char *argv[]) {
   packet_series_init(&packet_data);
   flow_table_init(&flow_table);
   dns_table_init(&dns_table, &domain_whitelist);
+#ifdef ENABLE_HTTP_URL
   http_table_init(&http_table);
+#endif
   address_table_init(&address_table);
   drop_statistics_init(&drop_statistics);
 #ifdef ENABLE_FREQUENT_UPDATES

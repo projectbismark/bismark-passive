@@ -24,6 +24,9 @@ endif
 ifdef DISABLE_FLOW_THRESHOLDING
 CFLAGS += -DDISABLE_FLOW_THRESHOLDING
 endif
+ifdef ENABLE_HTTP_URL
+CFLAGS += -DENABLE_HTTP_URL
+endif
 LDFLAGS += -lpcap -lresolv -lz
 SRCS = \
 	src/address_table.c \
