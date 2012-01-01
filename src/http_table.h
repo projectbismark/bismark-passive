@@ -13,8 +13,7 @@
 
 typedef struct {
   uint16_t flow_id;
-  uint8_t unanonymized : 1;
-  char *url;
+  unsigned char *url;
 } http_url_entry;
             
 typedef struct {
