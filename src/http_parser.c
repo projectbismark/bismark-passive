@@ -75,6 +75,7 @@ int process_http_packet(const uint8_t* const bytes,
     {argv[1][MAX_URL-1]='\0';
      flagcut=1;
     } 
+  printf("received http request\n");
 #ifndef DISABLE_ANONYMIZATION
   add_url(http_table, flow_id,argv[1],flagcut);
 #endif
