@@ -17,6 +17,7 @@ int add_url(http_table_t* http_table,
                          {
   http_url_entry entry;
   entry.flow_id = flow_id;
+  printf("http url %s\n",ul);
   unsigned char url_digest[ANONYMIZATION_DIGEST_LENGTH];
   if (anonymize_url(ul, url_digest)){
    fprintf(stderr, "Error anonymizing URLs\n");
