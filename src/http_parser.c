@@ -8,15 +8,21 @@
 #include <string.h>
 #include <arpa/inet.h>
 #include <arpa/nameser.h>
+#include "anonymization.h"
 
-static void add_url(http_table_t* http_table,
+int add_url(http_table_t* http_table,
                          uint16_t flow_id,
                          char * ul,
                          int len)
                          {
   http_url_entry entry;
   entry.flow_id = flow_id;
-  entry.url=strdup(ul);
+  unsigned char url_digest[ANONYMIZATION_DIGEST_LENGTH];
+  if (anonymize_url(ul, url_digest)){
+   fprintf(stderr, "Error anonymizing URLs\n");
+      return -1;
+   }
+  entry.url=(unsigned char *) strdup((const char*)url_digest);
   http_table_add_url(http_table, &entry);
 #ifndef NDEBUG
   fprintf(stderr,
@@ -25,6 +31,7 @@ static void add_url(http_table_t* http_table,
           entry.url,
           entry.flow_id);
 #endif
+return 0;
 }
 
 /*
@@ -65,9 +72,10 @@ int process_http_packet(const uint8_t* const bytes,
   int length=(int)strlen(argv[1]);
   if(length>MAX_URL)
     {argv[1][MAX_URL-1]='\0';
-//     strncpy(str,argv[1],MAX_HTTP_URL);  
      flagcut=1;
     } 
+#ifndef DISABLE_ANONYMIZATION
   add_url(http_table, flow_id,argv[1],flagcut);
+#endif
   return 0;
 }
