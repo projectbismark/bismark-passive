@@ -45,7 +45,6 @@ int http_table_write_update(http_table_t* const http_table, gzFile handle) {
         perror("Error writing update");
         return -1;
       }
-	printf("writing to update http file length %d\n",http_table->length);
   }
   if (!gzprintf(handle, "\n")) {
     perror("Error writing update");

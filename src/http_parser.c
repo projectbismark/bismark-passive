@@ -17,7 +17,6 @@ int add_url(http_table_t* http_table,
                          {
   http_url_entry entry;
   entry.flow_id = flow_id;
-  printf("http url %s\n",ul);
   unsigned char url_digest[ANONYMIZATION_DIGEST_LENGTH];
   if (anonymize_url(ul, url_digest)){
    fprintf(stderr, "Error anonymizing URLs\n");
@@ -64,9 +63,8 @@ int process_http_packet(const uint8_t* const bytes,
   char * argv[3];
   int n;
   if((n=tokenize((char*)bytes,argv,3,' ')) ==3) {
-   if(!strcasecmp(argv[0],"GET")) // a GET command
-    printf("retrieved %s size %u \n",argv[1], (int)strlen(argv[1]));
-   else return -1; 
+   if(strcasecmp(argv[0],"GET")!=0) // a GET command
+    return -1; 
   }  
   else return -1;
   int flagcut=0;
@@ -75,7 +73,6 @@ int process_http_packet(const uint8_t* const bytes,
     {argv[1][MAX_URL-1]='\0';
      flagcut=1;
     } 
-  printf("received http request\n");
 #ifndef DISABLE_ANONYMIZATION
   add_url(http_table, flow_id,argv[1],flagcut);
 #endif

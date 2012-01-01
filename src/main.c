@@ -128,10 +128,9 @@ static uint16_t get_flow_entry_for_packet(
           (void *)ip_header + ip_header->ihl * sizeof(uint32_t));
       entry->port_source = ntohs(tcp_header->source);
       entry->port_destination = ntohs(tcp_header->dest);
-	printf("before\n");
 #ifdef ENABLE_HTTP_URL        
       if(entry->port_destination ==80 ) 
-      { printf("received 80\n");
+      { 
        int hlen = tcp_header->doff*4; 
        if (hlen>sizeof(*tcp_header)) hlen=hlen-sizeof(*tcp_header);
        * http_bytes = (u_char*)tcp_header + sizeof(struct tcphdr) + hlen;
