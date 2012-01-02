@@ -1,5 +1,5 @@
+#ifdef ENABLE_HTTP_URL
 #include "http_table.h"
-
 #include <inttypes.h>
 #include <stdlib.h>
 #include <string.h>
@@ -53,3 +53,4 @@ int http_table_write_update(http_table_t* const http_table, gzFile handle) {
 
   return 0;
 }
+#endif

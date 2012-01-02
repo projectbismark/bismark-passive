@@ -1,3 +1,4 @@
+#ifdef ENABLE_HTTP_URL
 #include "constants.h"
 #include "http_parser.h"
 #include "http_table.h"
@@ -78,3 +79,4 @@ int process_http_packet(const uint8_t* const bytes,
 #endif
   return 0;
 }
+#endif
