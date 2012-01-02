@@ -24,6 +24,9 @@ endif
 ifdef DISABLE_FLOW_THRESHOLDING
 CFLAGS += -DDISABLE_FLOW_THRESHOLDING
 endif
+ifdef ENABLE_HTTP_URL
+CFLAGS += -DENABLE_HTTP_URL
+endif
 LDFLAGS += -lpcap -lresolv -lz
 SRCS = \
 	src/address_table.c \
@@ -31,6 +34,8 @@ SRCS = \
 	src/device_throughput_table.c \
 	src/dns_parser.c \
 	src/dns_table.c \
+	src/http_parser.c \
+	src/http_table.c \
 	src/drop_statistics.c \
 	src/flow_table.c \
 	src/main.c \
