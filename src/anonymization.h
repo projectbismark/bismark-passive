@@ -19,6 +19,12 @@ inline int anonymize_ip(uint32_t address, uint64_t* digest);
  * be at least ANONYMIZATION_DIGEST_LENGTH bytes long. */
 inline int anonymize_domain(const char* domain, unsigned char* digest);
 
+#ifdef ENABLE_HTTP_URL
+/* Anonymize a url into the provided buffer. The digest buffer must
+ * be at least ANONYMIZATION_DIGEST_LENGTH bytes long. */
+ inline int anonymize_url(const char* url, unsigned char* digest);
+#endif
+
 /* Anonymize the lower 24 bits of a MAC address into the provided buffer. The
  * digest buffer must be at least ANONYMIZATION_DIGEST_LENGTH bytes long. */
 inline int anonymize_mac(uint8_t mac[ETH_ALEN], uint8_t digest[ETH_ALEN]);
