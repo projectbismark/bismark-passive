@@ -70,10 +70,10 @@ following format:
     ...
     [MAC id] [packet id] [anonymized?] [(hashed) domain name for A record] [(hashed) ip address for A record] [ttl]
     
-    [MAC id] [packet id] [anonymized?] [(hashed) domain name for CNAME record] [(hashed) cname for CNAME record] [ttl]
-    [MAC id] [packet id] [anonymized?] [(hashed) domain name for CNAME record] [(hashed) cname for CNAME record] [ttl]
+    [MAC id] [packet id] [domain anonymized?] [(hashed) domain name for CNAME record] [cname anonymized?] [(hashed) cname for CNAME record] [ttl]
+    [MAC id] [packet id] [domain anonymized?] [(hashed) domain name for CNAME record] [cname anonymized?] [(hashed) cname for CNAME record] [ttl]
     ...
-    [MAC id] [packet id] [anonymized?] [(hashed) domain name for CNAME record] [(hashed) cname for CNAME record] [ttl]
+    [MAC id] [packet id] [domain anonymized?] [(hashed) domain name for CNAME record] [cname anonymized? (optional)] [(hashed) cname for CNAME record] [ttl]
     
     [address id of first address in list] [total size of address table]
     [MAC address with lower 24 bits hashed] [hashed IP address]
@@ -92,6 +92,7 @@ following format:
 protocols. See the `reserved_flow_indices` enum in `src/constants.h` for the
 full list.
 2. (Version 2+) Dropped packets support added in file format version 2.
+3. (Version 3+) Starting in version 3, cnames and domain names are anonymized seprately. Prior to version 3, the "cnames anonymized?" field was nonexistent.
 
 Complexity of resource usage
 ----------------------------
