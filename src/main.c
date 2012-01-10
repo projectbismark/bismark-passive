@@ -251,8 +251,6 @@ static void write_update() {
     have_pcap_statistics = 0;
   }
 
-  dns_table_mark_unanonymized(&dns_table, &flow_table);
-
   printf("Writing differential log to %s\n", PENDING_UPDATE_FILENAME);
   gzFile handle = gzopen (PENDING_UPDATE_FILENAME, "wb");
   if (!handle) {

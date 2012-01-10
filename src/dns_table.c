@@ -30,14 +30,6 @@ int dns_table_add_a(dns_table_t* const table,
     ++table->num_dropped_a_entries;
     return -1;
   }
-#ifndef DISABLE_ANONYMIZATION
-  if (table->whitelist
-      && !domain_whitelist_lookup(table->whitelist, new_entry->domain_name)) {
-    new_entry->unanonymized = 1;
-  } else {
-    new_entry->unanonymized = 0;
-  }
-#endif
   table->a_entries[table->a_length] = *new_entry;
   ++table->a_length;
   return 0;
@@ -49,52 +41,9 @@ int dns_table_add_cname(dns_table_t* const table,
     ++table->num_dropped_cname_entries;
     return -1;
   }
-#ifndef DISABLE_ANONYMIZATION
-  if (table->whitelist
-      && (!domain_whitelist_lookup(table->whitelist, new_entry->domain_name)
-        || !domain_whitelist_lookup(table->whitelist, new_entry->cname))) {
-    new_entry->unanonymized = 1;
-  } else {
-    new_entry->unanonymized = 0;
-  }
-#endif
   table->cname_entries[table->cname_length] = *new_entry;
   ++table->cname_length;
   return 0;
-}
-
-void dns_table_mark_unanonymized(dns_table_t* const table,
-                                 flow_table_t* const flow_table) {
-  int idx;
-  for (idx = 0; idx < table->cname_length; ++idx) {
-    if (table->cname_entries[idx].unanonymized) {
-      int aidx;
-      for (aidx = 0; aidx < table->a_length; ++aidx) {
-        if (!strcmp(table->cname_entries[idx].domain_name,
-                    table->a_entries[aidx].domain_name)) {
-          table->a_entries[aidx].unanonymized = 1;
-        }
-      }
-    }
-  }
-
-  int aidx;
-  for (aidx = 0; aidx < table->a_length; ++aidx) {
-    if (table->a_entries[aidx].unanonymized) {
-      int fidx;
-      for (fidx = 0; fidx < FLOW_TABLE_ENTRIES; ++fidx) {
-        if (flow_table->entries[fidx].occupied == ENTRY_OCCUPIED_BUT_UNSENT) {
-          if (flow_table->entries[fidx].ip_source
-              == table->a_entries[aidx].ip_address) {
-            flow_table->entries[fidx].ip_source_unanonymized = 1;
-          } else if (flow_table->entries[fidx].ip_destination
-              == table->a_entries[aidx].ip_address) {
-            flow_table->entries[fidx].ip_destination_unanonymized = 1;
-          }
-        }
-      }
-    }
-  }
 }
 
 int dns_table_write_update(dns_table_t* const table, gzFile handle) {
@@ -107,40 +56,45 @@ int dns_table_write_update(dns_table_t* const table, gzFile handle) {
   }
   int idx;
   for (idx = 0; idx < table->a_length; ++idx) {
+    uint64_t address_digest;
 #ifndef DISABLE_ANONYMIZATION
-    if (table->a_entries[idx].unanonymized) {
+    if (anonymize_ip(table->a_entries[idx].ip_address, &address_digest)) {
+      fprintf(stderr, "Error anonymizing DNS data\n");
+      return -1;
+    }
+#else
+    address_digest = table->a_entries[idx].ip_address;
 #endif
-      if (!gzprintf(handle,
-                    "%" PRIu16 " %" PRIu8 " 0 %s %" PRIx32 " %" PRId32 "\n",
-                    table->a_entries[idx].packet_id,
-                    table->a_entries[idx].mac_id,
-                    table->a_entries[idx].domain_name,
-                    table->a_entries[idx].ip_address,
-                    table->a_entries[idx].ttl)) {
-        perror("Error writing update");
-        return -1;
-      }
-#ifndef DISABLE_ANONYMIZATION
+    unsigned int domain_anonymized;
+    const char* domain_string;
+    if (table->whitelist
+        && !domain_whitelist_lookup(table->whitelist,
+                                    table->a_entries[idx].domain_name)) {
+      domain_anonymized = 0;
+      domain_string = table->a_entries[idx].domain_name;
     } else {
       unsigned char domain_digest[ANONYMIZATION_DIGEST_LENGTH];
-      uint64_t address_digest;
-      if (anonymize_domain(table->a_entries[idx].domain_name, domain_digest)
-          || anonymize_ip(table->a_entries[idx].ip_address, &address_digest)) {
+      if (anonymize_domain(table->a_entries[idx].domain_name, domain_digest)) {
         fprintf(stderr, "Error anonymizing DNS data\n");
         return -1;
       }
-      if (!gzprintf(handle,
-            "%" PRIu16 " %" PRIu8 " 1 %s %" PRIx64 " %" PRId32 "\n",
-            table->a_entries[idx].packet_id,
-            table->a_entries[idx].mac_id,
-            buffer_to_hex(domain_digest, ANONYMIZATION_DIGEST_LENGTH),
-            address_digest,
-            table->a_entries[idx].ttl)) {
-        perror("Error writing update");
-        return -1;
-      }
+      char hex_domain_digest[ANONYMIZATION_DIGEST_LENGTH * 2 + 1];
+      strcpy(hex_domain_digest,
+          buffer_to_hex(domain_digest, ANONYMIZATION_DIGEST_LENGTH));
+      domain_anonymized = 1;
+      domain_string = hex_domain_digest;
     }
-#endif
+    if (!gzprintf(handle,
+                  "%" PRIu16 " %" PRIu8 " %u %s %" PRIx64 " %" PRId32 "\n",
+                  table->a_entries[idx].packet_id,
+                  table->a_entries[idx].mac_id,
+                  domain_anonymized,
+                  domain_string,
+                  address_digest,
+                  table->a_entries[idx].ttl)) {
+      perror("Error writing update");
+      return -1;
+    }
   }
   if (!gzprintf(handle, "\n")) {
     perror("Error writing update");
@@ -148,46 +102,63 @@ int dns_table_write_update(dns_table_t* const table, gzFile handle) {
   }
 
   for (idx = 0; idx < table->cname_length; ++idx) {
+    unsigned int domain_anonymized, cname_anonymized;
+    const char* domain_string;
+    const char* cname_string;
 #ifndef DISABLE_ANONYMIZATION
-    if (table->cname_entries[idx].unanonymized) {
+    if (table->whitelist
+        && !domain_whitelist_lookup(table->whitelist,
+                                    table->cname_entries[idx].domain_name)) {
 #endif
-      if (!gzprintf(handle,
-                    "%" PRIu16 " %" PRIu8 " 0 %s %s %" PRId32 "\n",
-                    table->cname_entries[idx].packet_id,
-                    table->cname_entries[idx].mac_id,
-                    table->cname_entries[idx].domain_name,
-                    table->cname_entries[idx].cname,
-                    table->cname_entries[idx].ttl)) {
-        perror("Error writing update");
-        return -1;
-      }
+      domain_anonymized = 0;
+      domain_string = table->cname_entries[idx].domain_name;
 #ifndef DISABLE_ANONYMIZATION
     } else {
+      domain_anonymized = 1;
       unsigned char domain_digest[ANONYMIZATION_DIGEST_LENGTH];
-      unsigned char cname_digest[ANONYMIZATION_DIGEST_LENGTH];
-      if (anonymize_domain(table->cname_entries[idx].domain_name, domain_digest)
-          || anonymize_domain(table->cname_entries[idx].cname, cname_digest)) {
+      if (anonymize_domain(table->cname_entries[idx].domain_name, domain_digest)) {
         fprintf(stderr, "Error anonymizing DNS data\n");
         return -1;
       }
       char hex_domain_digest[ANONYMIZATION_DIGEST_LENGTH * 2 + 1];
       strcpy(hex_domain_digest,
           buffer_to_hex(domain_digest, ANONYMIZATION_DIGEST_LENGTH));
+      domain_string = hex_domain_digest;
+    }
+#endif
+#ifndef DISABLE_ANONYMIZATION
+    if (table->whitelist
+        && !domain_whitelist_lookup(table->whitelist,
+                                    table->cname_entries[idx].cname)) {
+#endif
+      cname_anonymized = 0;
+      cname_string = table->cname_entries[idx].cname;
+#ifndef DISABLE_ANONYMIZATION
+    } else {
+      cname_anonymized = 1;
+      unsigned char cname_digest[ANONYMIZATION_DIGEST_LENGTH];
+      if (anonymize_domain(table->cname_entries[idx].cname, cname_digest)) {
+        fprintf(stderr, "Error anonymizing DNS data\n");
+        return -1;
+      }
       char hex_cname_digest[ANONYMIZATION_DIGEST_LENGTH * 2 + 1];
       strcpy(hex_cname_digest,
           buffer_to_hex(cname_digest, ANONYMIZATION_DIGEST_LENGTH));
-      if (!gzprintf(handle,
-                    "%" PRIu16 " %" PRIu8 " 1 %s %s %" PRId32 "\n",
-                    table->cname_entries[idx].packet_id,
-                    table->cname_entries[idx].mac_id,
-                    hex_domain_digest,
-                    hex_cname_digest,
-                    table->cname_entries[idx].ttl)) {
-        perror("Error writing update");
-        return -1;
-      }
+      cname_string = hex_cname_digest;
     }
 #endif
+    if (!gzprintf(handle,
+                  "%" PRIu16 " %" PRIu8 " %u %s %u %s %" PRId32 "\n",
+                  table->cname_entries[idx].packet_id,
+                  table->cname_entries[idx].mac_id,
+                  domain_anonymized,
+                  domain_string,
+                  cname_anonymized,
+                  cname_string,
+                  table->cname_entries[idx].ttl)) {
+      perror("Error writing update");
+      return -1;
+    }
   }
   if (!gzprintf(handle, "\n")) {
     perror("Error writing update");
