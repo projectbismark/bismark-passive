@@ -21,14 +21,18 @@ int drop_statistics_write_update(drop_statistics_t* const drop_statistics,
   uint32_t idx;
   for (idx = 0; idx < DROP_STATISTICS_MAXIMUM_PACKET_SIZE; ++idx) {
     if (drop_statistics->packet_sizes[idx] > 0) {
-      if (gzprintf(handle,
-                   "%" PRIu32 " %" PRIu32 "\n",
-                   idx,
-                   drop_statistics->packet_sizes[idx]) < 0) {
+      if (!gzprintf(handle,
+                    "%" PRIu32 " %" PRIu32 "\n",
+                    idx,
+                    drop_statistics->packet_sizes[idx])) {
         perror("Error sending update");
         return -1;
       }
     }
+  }
+  if (!gzprintf(handle, "\n")) {
+    perror("Error writing update");
+    return -1;
   }
   return 0;
 }
