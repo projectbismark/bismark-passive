@@ -39,6 +39,7 @@
 #endif
 #include "dns_parser.h"
 #include "dns_table.h"
+#include "ethertype.h"
 #ifdef ENABLE_HTTP_URL
 #include "http_parser.h"
 #include "http_table.h"
