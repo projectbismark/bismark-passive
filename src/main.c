@@ -211,7 +211,7 @@ static void process_packet(
     case ETHERTYPE_ARP:
       flow_id = FLOW_ID_ARP;
       break;
-    case ETHERTYPE_AT:
+    case ETHERTYPE_ATALK:
       flow_id = FLOW_ID_AT;
       break;
     case ETHERTYPE_IP:

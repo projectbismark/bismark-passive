@@ -11,7 +11,7 @@
 #include "util.h"
 
 static uint8_t seed[ANONYMIZATION_SEED_LEN];
-static char seed_hex_digest[SHA_DIGEST_LENGTH * 2 + 1];
+static char seed_hex_digest[ANONYMIZATION_DIGEST_LENGTH * 2 + 1];
 static int initialized = 0;
 
 /* Anonymize a buffer of given length. Places the resulting digest into the
@@ -25,9 +25,9 @@ static void anonymization_process(const uint8_t* const data,
 }
 
 static int init_hex_seed_digest() {
-  unsigned char seed_digest[SHA_DIGEST_LENGTH];
+  unsigned char seed_digest[ANONYMIZATION_DIGEST_LENGTH];
   anonymization_process(seed, ANONYMIZATION_SEED_LEN, seed_digest);
-  const char* hex_digest = buffer_to_hex(seed_digest, SHA_DIGEST_LENGTH);
+  const char* hex_digest = buffer_to_hex(seed_digest, ANONYMIZATION_DIGEST_LENGTH);
   if (!hex_digest) {
     return -1;
   }

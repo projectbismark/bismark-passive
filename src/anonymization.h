@@ -4,9 +4,8 @@
 #include <stdint.h>
 #include <zlib.h>
 #include <net/ethernet.h>
-#include <openssl/sha.h>
 
-#define ANONYMIZATION_DIGEST_LENGTH SHA_DIGEST_LENGTH
+#define ANONYMIZATION_DIGEST_LENGTH 20
 
 /* Must call exactly once per process, before any anonymization is performed. */
 int anonymization_init();
