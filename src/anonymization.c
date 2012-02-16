@@ -79,9 +79,6 @@ inline int anonymize_url(const char* url, unsigned char* digest) {
 }
 #endif
 
-#define MAC_UPPER_MASK 0xffffff000000
-#define MAC_LOWER_MASK 0x000000ffffff
-
 inline int anonymize_mac(uint8_t mac[ETH_ALEN], uint8_t digest[ETH_ALEN]) {
   unsigned char mac_digest[ANONYMIZATION_DIGEST_LENGTH];
   anonymization_process(mac, ETH_ALEN, mac_digest);
