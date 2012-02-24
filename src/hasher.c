@@ -28,7 +28,7 @@ int main(int argc, char** argv) {
          &mac_address[5]);
   uint8_t digest[ETH_ALEN];
   anonymize_mac(mac_address, digest);
-  printf("%2hhx:%2hhx:%2hhx:%2hhx:%2hhx:%2hhx\n",
+  printf("%02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx\n",
          digest[0],
          digest[1],
          digest[2],
