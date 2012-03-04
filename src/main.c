@@ -39,14 +39,15 @@
 #endif
 #include "dns_parser.h"
 #include "dns_table.h"
+#include "drop_statistics.h"
 #include "ethertype.h"
 #ifdef ENABLE_HTTP_URL
 #include "http_parser.h"
 #include "http_table.h"
 #endif
-#include "drop_statistics.h"
 #include "flow_table.h"
 #include "packet_series.h"
+#include "upload_failures.h"
 #include "whitelist.h"
 
 static pcap_t* pcap_handle = NULL;
@@ -64,6 +65,7 @@ static drop_statistics_t drop_statistics;
 #ifdef ENABLE_FREQUENT_UPDATES
 static device_throughput_table_t device_throughput_table;
 #endif
+static upload_failures_t upload_failures;
 
 /* Set of signals that get blocked while processing a packet. */
 sigset_t block_set;
@@ -455,6 +457,10 @@ static void handle_signals(int sig) {
 #ifdef ENABLE_FREQUENT_UPDATES
     write_frequent_update();
 #endif
+    if (alarm_count % ALARMS_PER_UPDATE == 0
+        && upload_failures_check(&upload_failures) > 0) {
+      exit(0);
+    }
     set_next_alarm();
   }
 }
@@ -580,6 +586,7 @@ int main(int argc, char *argv[]) {
 #ifdef ENABLE_FREQUENT_UPDATES
   device_throughput_table_init(&device_throughput_table);
 #endif
+  upload_failures_init(&upload_failures, UPLOAD_FAILURES_FILENAME);
 
   initialize_signal_handler();
   set_next_alarm();

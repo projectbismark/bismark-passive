@@ -41,6 +41,7 @@ SRCS = \
 	src/main.c \
 	src/packet_series.c \
 	src/sha1.c \
+	src/upload_failures.c \
 	src/util.c \
 	src/whitelist.c
 OBJS = $(SRCS:.c=.o)
