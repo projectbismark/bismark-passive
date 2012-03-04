@@ -200,9 +200,9 @@ static void process_packet(
   int ether_type = get_flow_entry_for_packet(
       bytes, header->caplen, header->len, &flow_entry, &mac_id, &dns_bytes, &dns_bytes_len 
 #ifdef ENABLE_HTTP_URL        
-,&http_bytes, &http_bytes_len
+      , &http_bytes, &http_bytes_len
 #endif
-);
+      );
   uint16_t flow_id;
   switch (ether_type) {
     case ETHERTYPE_AARP:
