@@ -41,11 +41,10 @@ int upload_failures_check(upload_failures_t* failures) {
   int num_failures = read_failures(failures->filename);
   if (num_failures < 0) {
     return -1;
-  } else if (num_failures > failures->num_failures) {
-    failures->num_failures = num_failures;
+  } else if (num_failures != failures->num_failures) {
+    failures->num_failed = num_failures;
     return 1;
   } else {
-    failures->num_failures = num_failures;
     return 0;
   }
 }
