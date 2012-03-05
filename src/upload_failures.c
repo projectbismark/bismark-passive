@@ -25,23 +25,20 @@ static int read_failures(const char* filename) {
 }
 
 void upload_failures_init(upload_failures_t* failures, const char* filename) {
-  int num_failures = read_failures(filename);
-  if (num_failures < 0) {
-    failures->filename = NULL;
-  } else {
-    failures->filename = filename;
-    failures->num_failures = num_failures;
-  }
+  failures->filename = filename;
+  failures->valid = 0;
 }
 
 int upload_failures_check(upload_failures_t* failures) {
-  if (failures->filename == NULL) {
-    return -1;
-  }
   int num_failures = read_failures(failures->filename);
   if (num_failures < 0) {
     return -1;
-  } else if (num_failures != failures->num_failures) {
+  }
+  if (!failures->valid) {
+    failures->num_failures = 0;
+    failures->valid = 1;
+  }
+  if (failures->num_failures != num_failures) {
     failures->num_failures = num_failures;
     return 1;
   } else {

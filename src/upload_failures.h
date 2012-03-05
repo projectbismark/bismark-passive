@@ -4,6 +4,7 @@
 typedef struct {
   const char* filename;
   int num_failures;
+  int valid;
 } upload_failures_t;
 
 void upload_failures_init(upload_failures_t* failures, const char* filename);
