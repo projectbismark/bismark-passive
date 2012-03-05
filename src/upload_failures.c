@@ -1,5 +1,6 @@
 #include "upload_failures.h"
 
+#include <limits.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -12,7 +13,7 @@ static int read_failures(const char* filename) {
     return -1;
   }
 
-  char directory[FILENAME_MAX + 1];
+  char directory[NAME_MAX + 1];
   int num_failures;
   while (!feof(handle)) {
     fscanf(handle, format_string, directory, &num_failures);
@@ -33,7 +34,7 @@ void upload_failures_init(upload_failures_t* failures, const char* filename) {
   failures->filename = filename;
   failures->valid = 0;
 
-  snprintf(format_string, sizeof(format_string), "%%%ds %%d\n", FILENAME_MAX);
+  snprintf(format_string, sizeof(format_string), "%%%ds %%d\n", NAME_MAX);
 }
 
 int upload_failures_check(upload_failures_t* failures) {
