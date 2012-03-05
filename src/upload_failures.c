@@ -42,7 +42,7 @@ int upload_failures_check(upload_failures_t* failures) {
   if (num_failures < 0) {
     return -1;
   } else if (num_failures != failures->num_failures) {
-    failures->num_failed = num_failures;
+    failures->num_failures = num_failures;
     return 1;
   } else {
     return 0;
