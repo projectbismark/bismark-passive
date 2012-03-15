@@ -45,7 +45,9 @@ SRCS = \
 	src/util.c \
 	src/whitelist.c
 OBJS = $(SRCS:.c=.o)
+ifndef EXE
 EXE = bismark-passive.bin
+endif
 
 TEST_SRCS = \
 	src/address_table.c \
