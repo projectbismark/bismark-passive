@@ -1,6 +1,10 @@
 #include "upload_failures.h"
 
+#include <limits.h>
 #include <stdio.h>
+#include <string.h>
+
+static char format_string[256];  /* 256 is arbitrary. */
 
 static int read_failures(const char* filename) {
   FILE* handle = fopen(filename, "r");
@@ -9,15 +13,17 @@ static int read_failures(const char* filename) {
     return -1;
   }
 
+  char directory[NAME_MAX + 1];
   int num_failures;
   while (!feof(handle)) {
-    if (fscanf(handle, "passive %d\n", &num_failures) == 1) {
-      fclose(handle);
-      return num_failures;
-    }
+    fscanf(handle, format_string, directory, &num_failures);
     if (ferror(handle)) {
       perror("fscanf");
       break;
+    }
+    if (!strcmp(directory, "passive")) {
+      fclose(handle);
+      return num_failures;
     }
   }
   fclose(handle);
@@ -25,27 +31,24 @@ static int read_failures(const char* filename) {
 }
 
 void upload_failures_init(upload_failures_t* failures, const char* filename) {
-  int num_failures = read_failures(filename);
-  if (num_failures < 0) {
-    failures->filename = NULL;
-  } else {
-    failures->filename = filename;
-    failures->num_failures = num_failures;
-  }
+  failures->filename = filename;
+  failures->valid = 0;
+
+  snprintf(format_string, sizeof(format_string), "%%%ds %%d\n", NAME_MAX);
 }
 
 int upload_failures_check(upload_failures_t* failures) {
-  if (failures->filename == NULL) {
-    return -1;
-  }
   int num_failures = read_failures(failures->filename);
   if (num_failures < 0) {
     return -1;
-  } else if (num_failures > failures->num_failures) {
+  } else if (!failures->valid) {
+    failures->num_failures = num_failures;
+    failures->valid = 1;
+    return 0;
+  } else if (failures->num_failures != num_failures) {
     failures->num_failures = num_failures;
     return 1;
   } else {
-    failures->num_failures = num_failures;
     return 0;
   }
 }
