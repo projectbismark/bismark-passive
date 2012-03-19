@@ -16,9 +16,7 @@ int device_throughput_table_record(device_throughput_table_t* const table,
                                    const uint32_t bytes_transferred) {
   int idx;
   for (idx = 0; idx < table->length; ++idx) {
-    if (memcmp(table->entries[idx].mac_address,
-               mac_address,
-               sizeof(mac_address)) == 0) {
+    if (memcmp(table->entries[idx].mac_address, mac_address, ETH_ALEN)) == 0) {
       table->entries[idx].bytes_transferred += bytes_transferred;
       return 0;
     }
@@ -28,9 +26,7 @@ int device_throughput_table_record(device_throughput_table_t* const table,
     return -1;
   }
 
-  memcpy(table->entries[table->length].mac_address,
-         mac_address,
-         sizeof(mac_address));
+  memcpy(table->entries[table->length].mac_address, mac_address, ETH_ALEN);
   table->entries[table->length].bytes_transferred = bytes_transferred;
   ++table->length;
   return 0;
