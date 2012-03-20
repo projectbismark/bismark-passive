@@ -73,8 +73,8 @@ release: $(EXE)
 debug: CFLAGS += -g
 debug: $(EXE)
 
-$(BUILD_DIR)/%.o: mkdir -p $(BUILD_DIR)
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
+	mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $< -o $@
 
 $(EXE): $(OBJS)
