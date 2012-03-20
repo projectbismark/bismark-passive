@@ -1,5 +1,11 @@
-CC = gcc
+CC ?= gcc
+SRC_DIR ?= src
+BUILD_DIR ?= build
+EXE ?= bismark-passive.bin
+TEST_EXE ?= tests
 CFLAGS += -c -Wall -O3 -fno-strict-aliasing
+LDFLAGS += -lpcap -lresolv -lz
+
 ifdef BUILD_ID
 CFLAGS += -DBUILD_ID="\"$(BUILD_ID)\""
 endif
@@ -27,41 +33,37 @@ endif
 ifdef ENABLE_HTTP_URL
 CFLAGS += -DENABLE_HTTP_URL
 endif
-LDFLAGS += -lpcap -lresolv -lz
+
 SRCS = \
-	src/address_table.c \
-	src/anonymization.c \
-	src/device_throughput_table.c \
-	src/dns_parser.c \
-	src/dns_table.c \
-	src/http_parser.c \
-	src/http_table.c \
-	src/drop_statistics.c \
-	src/flow_table.c \
-	src/main.c \
-	src/packet_series.c \
-	src/sha1.c \
-	src/upload_failures.c \
-	src/util.c \
-	src/whitelist.c
-OBJS = $(SRCS:.c=.o)
-ifndef EXE
-EXE = bismark-passive.bin
-endif
+	$(SRC_DIR)/address_table.c \
+	$(SRC_DIR)/anonymization.c \
+	$(SRC_DIR)/device_throughput_table.c \
+	$(SRC_DIR)/dns_parser.c \
+	$(SRC_DIR)/dns_table.c \
+	$(SRC_DIR)/http_parser.c \
+	$(SRC_DIR)/http_table.c \
+	$(SRC_DIR)/drop_statistics.c \
+	$(SRC_DIR)/flow_table.c \
+	$(SRC_DIR)/main.c \
+	$(SRC_DIR)/packet_series.c \
+	$(SRC_DIR)/sha1.c \
+	$(SRC_DIR)/upload_failures.c \
+	$(SRC_DIR)/util.c \
+	$(SRC_DIR)/whitelist.c
+OBJS = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(SRCS))
 
 TEST_SRCS = \
-	src/address_table.c \
-	src/anonymization.c \
-	src/dns_parser.c \
-	src/dns_table.c \
-	src/flow_table.c \
-	src/packet_series.c \
-	src/sha1.c \
-	src/tests.c \
-	src/util.c \
-	src/whitelist.c
-TEST_OBJS = $(TEST_SRCS:.c=.o)
-TEST_EXE = tests
+	$(SRC_DIR)/address_table.c \
+	$(SRC_DIR)/anonymization.c \
+	$(SRC_DIR)/dns_parser.c \
+	$(SRC_DIR)/dns_table.c \
+	$(SRC_DIR)/flow_table.c \
+	$(SRC_DIR)/packet_series.c \
+	$(SRC_DIR)/sha1.c \
+	$(SRC_DIR)/tests.c \
+	$(SRC_DIR)/util.c \
+	$(SRC_DIR)/whitelist.c
+TEST_OBJS = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(TEST_SRCS))
 
 all: debug
 
@@ -71,7 +73,8 @@ release: $(EXE)
 debug: CFLAGS += -g
 debug: $(EXE)
 
-.c.o:
+$(BUILD_DIR)/%.o: mkdir -p $(BUILD_DIR)
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	$(CC) $(CFLAGS) $< -o $@
 
 $(EXE): $(OBJS)
@@ -88,4 +91,4 @@ $(TEST_EXE): $(TEST_OBJS)
 	./$(@)
 
 clean:
-	rm -rf $(OBJS) $(EXE) $(TEST_OBJS) $(TEST_EXE)
+	rm -f $(OBJS) $(EXE) $(TEST_OBJS) $(TEST_EXE)
