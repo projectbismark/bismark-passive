@@ -82,8 +82,8 @@ inline int anonymize_url(const char* url, unsigned char* digest) {
 inline int anonymize_mac(uint8_t mac[ETH_ALEN], uint8_t digest[ETH_ALEN]) {
   unsigned char mac_digest[ANONYMIZATION_DIGEST_LENGTH];
   anonymization_process(mac, ETH_ALEN, mac_digest);
+  memcpy(mac_digest, mac, ETH_ALEN / 2);
   memcpy(digest, mac_digest, ETH_ALEN);
-  memcpy(digest, mac, ETH_ALEN / 2);
   return 0;
 }
 

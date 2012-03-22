@@ -48,6 +48,7 @@
 #include "flow_table.h"
 #include "packet_series.h"
 #include "upload_failures.h"
+#include "util.h"
 #include "whitelist.h"
 
 static pcap_t* pcap_handle = NULL;
@@ -71,7 +72,12 @@ static upload_failures_t upload_failures;
 sigset_t block_set;
 
 /* Will be filled in the bismark node ID, from /etc/bismark/ID. */
-static char bismark_id[256];
+static char bismark_id[15];
+
+#ifdef ENABLE_FREQUENT_UPDATES
+/* Binary representation of the router's MAC address. */
+static uint8_t bismark_mac[ETH_ALEN];
+#endif
 
 /* Will be filled in with the current timestamp when the program starts. This
  * value serves as a unique identifier across instances of bismark-passive that
@@ -397,10 +403,11 @@ static void write_frequent_update() {
     exit(1);
   }
   time_t current_timestamp = time(NULL);
-  if (fprintf(handle,
-              "%s %" PRId64 "\n\n",
-              BUILD_ID,
-              (int64_t)current_timestamp) < 0) {
+  if (fprintf(handle, "%" PRId64 "\n", (int64_t)current_timestamp) < 0) {
+    perror("Error writing update");
+    exit(1);
+  }
+  if (fprintf(handle, "%s\n\n", buffer_to_hex(bismark_mac, ETH_ALEN)) < 0) {
     perror("Error writing update");
     exit(1);
   }
@@ -503,11 +510,23 @@ static void initialize_bismark_id() {
     perror("Cannot open Bismark ID file " BISMARK_ID_FILENAME);
     exit(1);
   }
-  if(fscanf(handle, "%255s\n", bismark_id) < 1) {
+  if(fscanf(handle, "%14s\n", bismark_id) < 1) {
     perror("Cannot read Bismark ID file " BISMARK_ID_FILENAME);
     exit(1);
   }
   fclose(handle);
+#ifdef ENABLE_FREQUENT_UPDATES
+  if (sscanf(&bismark_id[2],
+             "%2hhx%2hhx%2hhx%2hhx%2hhx%2hhx",
+             &bismark_mac[0],
+             &bismark_mac[1],
+             &bismark_mac[2],
+             &bismark_mac[3],
+             &bismark_mac[4],
+             &bismark_mac[5]) != 6) {
+    perror("Couldn't match MAC address from Bismark ID");
+  }
+#endif
 }
 
 static int initialize_domain_whitelist(const char* const filename) {
@@ -573,6 +592,11 @@ int main(int argc, char *argv[]) {
   if (anonymization_init()) {
     fprintf(stderr, "Error initializing anonymizer\n");
     return 1;
+  }
+#endif
+#ifdef ENABLE_FREQUENT_UPDATES
+  if (anonymize_mac(bismark_mac, bismark_mac)) {
+    fprintf(stderr, "Error anonymizing router MAC address\n");
   }
 #endif
   packet_series_init(&packet_data);
