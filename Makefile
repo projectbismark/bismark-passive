@@ -65,6 +65,14 @@ TEST_SRCS = \
 	$(SRC_DIR)/whitelist.c
 TEST_OBJS = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(TEST_SRCS))
 
+HASHER_SRCS = \
+	src/anonymization.c \
+	src/hasher.c \
+	src/sha1.c \
+	src/util.c
+HASHER_OBJS = $(HASHER_SRCS:.c=.o)
+HASHER_EXE = bismark-passive-hasher
+
 all: debug
 
 release: CFLAGS += -O3 -DNDEBUG
@@ -89,6 +97,9 @@ $(TEST_EXE): LDFLAGS += -lcheck
 $(TEST_EXE): $(TEST_OBJS)
 	$(CC) $(LDFLAGS) $(TEST_OBJS) -o $@
 	./$(@)
+
+$(HASHER_EXE): $(HASHER_OBJS)
+	$(CC) $(LDFLAGS) $(HASHER_OBJS) -o $@
 
 clean:
 	rm -f $(OBJS) $(EXE) $(TEST_OBJS) $(TEST_EXE)
