@@ -98,6 +98,8 @@ $(TEST_EXE): $(TEST_OBJS)
 	$(CC) $(LDFLAGS) $(TEST_OBJS) -o $@
 	./$(@)
 
+hasher: $(HASHER_EXE)
+
 $(HASHER_EXE): $(HASHER_OBJS)
 	$(CC) $(LDFLAGS) $(HASHER_OBJS) -o $@
 
