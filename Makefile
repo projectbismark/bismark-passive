@@ -3,6 +3,7 @@ SRC_DIR ?= src
 BUILD_DIR ?= build
 EXE ?= bismark-passive.bin
 TEST_EXE ?= tests
+HASHER_EXE ?= bismark-passive-hasher
 CFLAGS += -c -Wall -O3 -fno-strict-aliasing
 LDFLAGS += -lpcap -lresolv -lz
 
@@ -70,8 +71,7 @@ HASHER_SRCS = \
 	src/hasher.c \
 	src/sha1.c \
 	src/util.c
-HASHER_OBJS = $(HASHER_SRCS:.c=.o)
-HASHER_EXE = bismark-passive-hasher
+HASHER_OBJS = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(HASHER_SRCS))
 
 all: debug
 
