@@ -65,15 +65,15 @@ following format:
     [flow id] [anonymized source?] [(hashed) source IP address] [anonymized destination?] [(hashed) destination IP address] [transport protocol] [source port] [destination port]
     
     [total dropped A records] [total dropped CNAME records]
-    [MAC id] [packet id] [anonymized?] [(hashed) domain name for A record] [(hashed) ip address for A record] [ttl]
-    [MAC id] [packet id] [anonymized?] [(hashed) domain name for A record] [(hashed) ip address for A record] [ttl]
+    [packet id] [MAC id] [anonymized?] [(hashed) domain name for A record] [(hashed) ip address for A record] [ttl]
+    [packet id] [MAC id] [anonymized?] [(hashed) domain name for A record] [(hashed) ip address for A record] [ttl]
     ...
-    [MAC id] [packet id] [anonymized?] [(hashed) domain name for A record] [(hashed) ip address for A record] [ttl]
+    [packet id] [MAC id] [anonymized?] [(hashed) domain name for A record] [(hashed) ip address for A record] [ttl]
     
-    [MAC id] [packet id] [domain anonymized?] [(hashed) domain name for CNAME record] [(optional) cname anonymized?] [(hashed) cname for CNAME record] [ttl]
-    [MAC id] [packet id] [domain anonymized?] [(hashed) domain name for CNAME record] [(optional) cname anonymized?] [(hashed) cname for CNAME record] [ttl]
+    [packet id] [MAC id] [domain anonymized?] [(hashed) domain name for CNAME record] [(optional) cname anonymized?] [(hashed) cname for CNAME record] [ttl]
+    [packet id] [MAC id] [domain anonymized?] [(hashed) domain name for CNAME record] [(optional) cname anonymized?] [(hashed) cname for CNAME record] [ttl]
     ...
-    [MAC id] [packet id] [domain anonymized?] [(hashed) domain name for CNAME record] [(optional) cname anonymized?] [(hashed) cname for CNAME record] [ttl]
+    [packet id] [MAC id] [domain anonymized?] [(hashed) domain name for CNAME record] [(optional) cname anonymized?] [(hashed) cname for CNAME record] [ttl]
     
     [address id of first address in list] [total size of address table]
     [MAC address with lower 24 bits hashed] [hashed IP address]
