@@ -20,7 +20,7 @@
  * smaller, aggregated updates every 15 seconds. */
 /*#define ENABLE_FREQUENT_UPDATES*/
 
-#define FILE_FORMAT_VERSION 4
+#define FILE_FORMAT_VERSION 5
 #define FREQUENT_FILE_FORMAT_VERSION 3
 #ifndef BUILD_ID
 #define BUILD_ID "UNKNOWN"

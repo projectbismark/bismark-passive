@@ -255,7 +255,7 @@ static void process_packet(
     drop_statistics_process_packet(&drop_statistics, header->len);
   }
 
-  if (dns_bytes_len > 0 && mac_id >= 0) {
+  if (dns_bytes_len > 0 && mac_id >= 0 && packet_id >= 0) {
     process_dns_packet(dns_bytes, dns_bytes_len, &dns_table, packet_id, mac_id);
   }
 #ifdef ENABLE_HTTP_URL
