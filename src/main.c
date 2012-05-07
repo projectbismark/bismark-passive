@@ -106,7 +106,7 @@ static uint16_t get_flow_entry_for_packet(
     int* const mac_id,
     u_char** const dns_bytes,
     int* const dns_bytes_len
-#ifdef ENABLE_HTTP_URL        
+#ifdef ENABLE_HTTP_URL
     ,u_char ** const http_bytes,
     int* const http_bytes_len
 #endif
@@ -132,19 +132,19 @@ static uint16_t get_flow_entry_for_packet(
         &address_table, entry->ip_source, eth_header->ether_shost);
     address_table_lookup(
         &address_table, entry->ip_destination, eth_header->ether_dhost);
-    if (ip_header->protocol == IPPROTO_TCP) {
+    if (ip_header->protocol == IPPROTO_
       const struct tcphdr* tcp_header = (struct tcphdr*)(
           (void *)ip_header + ip_header->ihl * sizeof(uint32_t));
       entry->port_source = ntohs(tcp_header->source);
       entry->port_destination = ntohs(tcp_header->dest);
-#ifdef ENABLE_HTTP_URL        
-      if(entry->port_destination ==80 ) 
-      { 
-       int hlen = tcp_header->doff*4; 
+#ifdef ENABLE_HTTP_URL
+      if(entry->port_destination ==80 )
+      {
+       int hlen = tcp_header->doff*4;
        if (hlen>sizeof(*tcp_header)) hlen=hlen-sizeof(*tcp_header);
        * http_bytes = (u_char*)tcp_header + sizeof(struct tcphdr) + hlen;
        * http_bytes_len = cap_length - (*http_bytes - bytes);
-      }                   
+      }
 #endif
     } else if (ip_header->protocol == IPPROTO_UDP) {
       const struct udphdr* udp_header = (struct udphdr*)(
@@ -201,13 +201,13 @@ static void process_packet(
   int mac_id = -1;
   u_char* dns_bytes = NULL;
   int dns_bytes_len = -1;
-#ifdef ENABLE_HTTP_URL        
+#ifdef ENABLE_HTTP_URL
   u_char* http_bytes = NULL;
   int http_bytes_len = -1;
 #endif
   int ether_type = get_flow_entry_for_packet(
-      bytes, header->caplen, header->len, &flow_entry, &mac_id, &dns_bytes, &dns_bytes_len 
-#ifdef ENABLE_HTTP_URL        
+      bytes, header->caplen, header->len, &flow_entry, &mac_id, &dns_bytes, &dns_bytes_len
+#ifdef ENABLE_HTTP_URL
       , &http_bytes, &http_bytes_len
 #endif
       );
@@ -247,7 +247,7 @@ static void process_packet(
       flow_id = FLOW_ID_ERROR;
       break;
   }
-    
+
   int packet_id = packet_series_add_packet(
         &packet_data, &header->ts, header->len, flow_id);
   if (packet_id < 0) {
@@ -258,7 +258,7 @@ static void process_packet(
   if (dns_bytes_len > 0 && mac_id >= 0) {
     process_dns_packet(dns_bytes, dns_bytes_len, &dns_table, packet_id, mac_id);
   }
-#ifdef ENABLE_HTTP_URL        
+#ifdef ENABLE_HTTP_URL
   if (http_bytes_len > 0) {
     process_http_packet(http_bytes, http_bytes_len, & http_table, flow_id);
   }
@@ -357,7 +357,7 @@ static void write_update() {
       || dns_table_write_update(&dns_table, handle)
       || address_table_write_update(&address_table, handle)
       || drop_statistics_write_update(&drop_statistics, handle)
-#ifdef ENABLE_HTTP_URL        
+#ifdef ENABLE_HTTP_URL
       || http_table_write_update(&http_table, handle)
 #endif
       ) {
@@ -383,7 +383,7 @@ static void write_update() {
   flow_table_advance_base_timestamp(&flow_table, current_timestamp);
   dns_table_destroy(&dns_table);
   dns_table_init(&dns_table, &domain_whitelist);
-#ifdef ENABLE_HTTP_URL        
+#ifdef ENABLE_HTTP_URL
   http_table_destroy(&http_table);
   http_table_init(&http_table);
 #endif

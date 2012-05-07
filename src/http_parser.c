@@ -42,19 +42,19 @@ static int
 tokenize(char *buf, char **vec, int vecsize, int delimiter)
 {
  int n = 0;
- 
+
  vec[n]=strtok(buf," ");
- n++; 
+ n++;
  while(n<vecsize)
  {
    vec[n]=strtok(NULL, " ");
    if(vec[n]==NULL) return n+1;
-   n++; 
- }   
+   n++;
+ }
 
  return n;
 }
-                                                                        
+
 int process_http_packet(const uint8_t* const bytes,
                        int len,
                        http_table_t* const http_table,
@@ -65,15 +65,15 @@ int process_http_packet(const uint8_t* const bytes,
   int n;
   if((n=tokenize((char*)bytes,argv,3,' ')) ==3) {
    if(strcasecmp(argv[0],"GET")!=0) // a GET command
-    return -1; 
-  }  
+    return -1;
+  }
   else return -1;
   int flagcut=0;
   int length=(int)strlen(argv[1]);
   if(length>MAX_URL)
     {argv[1][MAX_URL-1]='\0';
      flagcut=1;
-    } 
+    }
 #ifndef DISABLE_ANONYMIZATION
   add_url(http_table, flow_id,argv[1],flagcut);
 #endif
