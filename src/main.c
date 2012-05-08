@@ -132,7 +132,7 @@ static uint16_t get_flow_entry_for_packet(
         &address_table, entry->ip_source, eth_header->ether_shost);
     address_table_lookup(
         &address_table, entry->ip_destination, eth_header->ether_dhost);
-    if (ip_header->protocol == IPPROTO_
+    if (ip_header->protocol == IPPROTO_TCP) {
       const struct tcphdr* tcp_header = (struct tcphdr*)(
           (void *)ip_header + ip_header->ihl * sizeof(uint32_t));
       entry->port_source = ntohs(tcp_header->source);
