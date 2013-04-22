@@ -86,7 +86,7 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	$(CC) $(CFLAGS) $< -o $@
 
 $(EXE): $(OBJS)
-	$(CC) $(LDFLAGS) $(OBJS) -o $@
+	$(CC) $(OBJS) $(LDFLAGS) -o $@
 
 fixperms: $(EXE)
 	chmod 700 $(EXE)
@@ -95,13 +95,13 @@ fixperms: $(EXE)
 $(TEST_EXE): CFLAGS += -g -DTESTING
 $(TEST_EXE): LDFLAGS += -lcheck
 $(TEST_EXE): $(TEST_OBJS)
-	$(CC) $(LDFLAGS) $(TEST_OBJS) -o $@
+	$(CC) $(TEST_OBJS) $(LDFLAGS) -o $@
 	./$(@)
 
 hasher: $(HASHER_EXE)
 
 $(HASHER_EXE): $(HASHER_OBJS)
-	$(CC) $(LDFLAGS) $(HASHER_OBJS) -o $@
+	$(CC) $(HASHER_OBJS) $(LDFLAGS) -o $@
 
 clean:
 	rm -f $(OBJS) $(EXE) $(TEST_OBJS) $(TEST_EXE)
